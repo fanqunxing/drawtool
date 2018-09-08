@@ -461,6 +461,21 @@ function DrawTool( dom , setting)
 	Event.on( _dom, "mouseup", mouseup );
 
 
+	_dom.oncontextmenu = function(){
+		_activeline = {
+			startNodeid : false,
+			startAnchorid : false,
+			endNodeid : false,
+			endAnchorid : false,
+			ctrl1:[],
+			ctrl2:[]
+		}
+		clearCanvas(_ctx, _canvas);
+		linkAllLines();
+	　　	return false;
+	}
+
+
 	function mousedownCtrl( e )
 	{
 		_activeCtrl = this;
@@ -587,7 +602,7 @@ function DrawTool( dom , setting)
 	 		_lineStack.deleteById( lineid );
 			hideDom( _operate );
 			clearCanvas( _ctx , _canvas );
-			linkAllLines( _ctx, _lineStack );
+			linkAllLines();
 	        _selectedLine = null;//释放选中线条
 	 	}
 		
@@ -601,6 +616,7 @@ function DrawTool( dom , setting)
         selectedLineHover( x, y );
 		linkAllLines();
 	}
+
 
 	function clickOnDom( e )
 	{
