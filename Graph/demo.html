@@ -40,7 +40,7 @@
 			lineColor: '#26b7d0',
 			lineHoverColor: '#aaa',
 			arrowColor: '#444',
-			lineStyle: 'none'// arrow, none
+			// lineStyle: 'none'// arrow, none
 		}
 		var drawTool = new DrawTool(canvas, setting);
 		var option = {
@@ -59,7 +59,7 @@
 			return option;
 		}
 
-		for (var i = 65; i < 91; i++) {
+		for (var i = 65; i < 68; i++) {
 			drawTool.addNode(getOption(String.fromCharCode(i)));
 		}
 		

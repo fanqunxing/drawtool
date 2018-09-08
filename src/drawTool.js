@@ -209,7 +209,19 @@ lineproto.deleteById = function( lineid ){
 			break;
 		}
 	}
-}
+};
+
+lineproto.deleteByNodeId = function( nodeid ) {
+	for(var i = 0; i < this.length; i++)
+	{
+		if( this[i].startNodeid == nodeid 
+			|| this[i].endNodeid == nodeid)
+		{
+			Array.prototype.splice.call( this, i, 1 );
+		}
+	}
+};
+
 lineproto.getLineById = function( lineid )
 {
 	var line = null;
@@ -261,10 +273,29 @@ nodeproto.getNodeById = function( nodeid )
 	}
 	return node;
 }
+nodeproto.deleteById = function( nodeid ) {
+	var node = null;
+	for(var i = 0; i < this.length; i++)
+	{
+		var oNode = this[i];
+		if( oNode.nodeid == nodeid )
+		{
+			oNode.remove();
+			Array.prototype.splice.call( this, i, 1 );
+			break;
+		}
+	}
+	return node;
+};
+
 nodeproto.clear = function()
 {
+	for(var i = 0; i < this.length; i++)
+	{
+		this[i].remove();
+	}
 	this.length = 0;
-}
+};
 
 function getAnchorPosById( anchorsLists, anchorid )
 {
@@ -461,6 +492,20 @@ function DrawTool( dom , setting)
 	Event.on( _dom, "mouseup", mouseup );
 
 
+	_dom.oncontextmenu = function(){
+		_activeline = {
+			startNodeid : false,
+			startAnchorid : false,
+			endNodeid : false,
+			endAnchorid : false,
+			ctrl1:[],
+			ctrl2:[]
+		}
+		redraw();
+	　　	return false;
+	}
+
+
 	function mousedownCtrl( e )
 	{
 		_activeCtrl = this;
@@ -482,8 +527,7 @@ function DrawTool( dom , setting)
 		    	x + _activeCtrl.offsetWidth/2, 
 		    	y + _activeCtrl.offsetHeight/2
 		    ];
-			clearCanvas( _ctx, _canvas );
-			linkAllLines();
+			redraw();
 		}
 	}
 
@@ -568,8 +612,7 @@ function DrawTool( dom , setting)
 				_activeline.startNodeid = null;
 				_activeline.startAnchorid = null;
 			}
-			clearCanvas( _ctx , _canvas );
-			linkAllLines( _ctx, _lineStack );
+			redraw();
 		}
 		else
 		{
@@ -586,8 +629,7 @@ function DrawTool( dom , setting)
 	 	{
 	 		_lineStack.deleteById( lineid );
 			hideDom( _operate );
-			clearCanvas( _ctx , _canvas );
-			linkAllLines( _ctx, _lineStack );
+			redraw();
 	        _selectedLine = null;//释放选中线条
 	 	}
 		
@@ -601,6 +643,7 @@ function DrawTool( dom , setting)
         selectedLineHover( x, y );
 		linkAllLines();
 	}
+
 
 	function clickOnDom( e )
 	{
@@ -624,9 +667,7 @@ function DrawTool( dom , setting)
 			hideDom( _operate );
 			hideDom( _ctrlMap.ctrl );
 		}
-		clearCanvas( _ctx , _canvas );
-		drawSelectedLine();
-		linkAllLines();
+		redraw();
 	}
 
 
@@ -641,8 +682,13 @@ function DrawTool( dom , setting)
 		var start = getAnchorPosById( startAnchorsLists, _activeline.startAnchorid );
 		var end = getTargetPos( _canvas, e);
 		var divideMap = divide( start, [end.x, end.y] , 3 );
-		clearCanvas( _ctx , _canvas );
+		redraw();
 		lineTo( _ctx, start, [end.x, end.y], divideMap[1], divideMap[2] );
+	}
+
+	function redraw() {
+		clearCanvas( _ctx , _canvas );
+		drawSelectedLine();
 		linkAllLines();
 	}
 
@@ -755,9 +801,7 @@ function DrawTool( dom , setting)
 		    }
 		    else
 		    {
-		    	// console.log('clear');
-		    	clearCanvas( _ctx , _canvas );
-		    	drawSelectedLine();
+		    	redraw();
 		    }
 		}
 		return resLine;
@@ -996,6 +1040,14 @@ function DrawTool( dom , setting)
 		return node;
 	}
 
+	this.deleteNodeById = function ( nodeid) 
+	{
+		var node = _nodeStack.deleteById(nodeid);
+		_lineStack.deleteByNodeId(nodeid);
+		redraw();
+		return node;
+	}
+
 	this.getAllNodesInfo = function ()
 	{
 		var nodeStack = [];
@@ -1004,7 +1056,8 @@ function DrawTool( dom , setting)
 			var node = _nodeStack[i];
 			var oNode = {
 				html: node.innerHTML,
-				nodeid: node.nodeid
+				nodeid: node.nodeid,
+				dom: node
 			}
 			nodeStack.push( oNode );
 
