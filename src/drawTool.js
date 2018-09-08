@@ -154,6 +154,17 @@ var Classes = {
 	ctrlli: "drawTool-controller-li",
 	ctrlJs: "js-drawTool-controller-li"
 }
+encryptClasses(Classes);
+
+function encryptClasses()
+{
+	for (var key in Classes) 
+	{
+		if (key.indexOf('Js') > -1) {
+			Classes[key] += '-' + Math.floor(Math.random() * new Date().getTime()); 
+		}
+	}
+}
 
 
 function showDom( dom )
@@ -464,7 +475,8 @@ function DrawTool( dom , setting)
 		},
 		lineTo: function lineTo() {
 			return true;
-		}
+		},
+		clickNode: new Function()
 	};
 	var _setting = extend({
 		lineColor: '#26b7d0',
@@ -1030,9 +1042,10 @@ function DrawTool( dom , setting)
 		node.className = Classes.nodeCss + " " + Classes.nodeJs;
 		node.style.left = nodeCfg.pos.x + "px";
 		node.style.top = nodeCfg.pos.y + "px";
+		console.log(nodeCfg.html);
 		node.innerHTML = nodeCfg.html;
 		var innerNode = node.children[0];
-		innerNode.className = Classes.innerNodeJs;
+		addClass(innerNode, Classes.innerNodeJs);
 		node.anchors = nodeCfg.anchors;
 		_dom.appendChild( node );
 		_nodeStack.push( node );

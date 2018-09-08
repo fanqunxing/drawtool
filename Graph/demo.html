@@ -5,6 +5,7 @@
 	<title></title>
 	<link rel="stylesheet" type="text/css" href="../src/drawTool.css">
 	<script type="text/javascript" src="../src/drawTool.js"></script>
+	<script type="text/javascript" src="jquery-1.12.2.js"></script>
 	<style type="text/css">
 		*{
 			margin: 0px;
@@ -12,28 +13,39 @@
 		}
 		#canvas{
 			width: 800px;
-			height: 600px;
+			height: 400px;
 			border: solid 1px red;
 			margin: auto;
 			background: #fafafa;
 		}
-		.drawTool-node{
-			border:solid 1px red;
-			cursor: pointer;
-			border-radius: 50%;
-		}
-		.js-drawTool-inner-node{
+		.node{
 			width: 40px;
 			height: 40px;
 			text-align: center;
     		line-height: 40px;
+    		border:solid 1px red;
+			cursor: pointer;
+			border-radius: 50%;
 		}
 	</style>
 </head>
 <body>
-	<div id="canvas" class="canvas">
-
-	</div>
+	<table>
+		<tr>
+			<td>
+				<table>
+					<tr>
+						<td>
+							<button onclick="addNode()">新增节点</button>
+						</td>
+					</tr>
+				</table>
+			</td>
+			<td>
+				<div id="canvas" class="canvas"></div>
+			</td>
+		</tr>
+	</table>
 	<script type="text/javascript">
 		var canvas = document.getElementById('canvas');
 		var setting = {
@@ -43,31 +55,28 @@
 			// lineStyle: 'none'// arrow, none
 		}
 		var drawTool = new DrawTool(canvas, setting);
-		var option = {
-			pos:{x:20,y:60},
-			html:"<div>盒子</div>",
-			anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
-		};
 
 		
-		function getOption(i) {
+		var index = 65;
+		function addNode() {
 			var option = {
-				pos:{x:20,y:60},
-				html:"<div>"+i+"</div>",
+				pos:{x:20,y:20},
+				html:"<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
 				anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
 			};
-			return option;
-		}
+			drawTool.addNode(option);
+			index++;
+		};
 
-		for (var i = 65; i < 68; i++) {
-			drawTool.addNode(getOption(String.fromCharCode(i)));
-		}
+		$("#canvas").delegate('.js-node', 'click', function() {
+			console.log(this);
+		});
 		
 
 
 		drawTool.listen({
 			clickLine: function( line ){
-				console.log( line )
+				console.log( line );
 			},
 			deleteLine: function( line ){
 				return true;
@@ -75,6 +84,10 @@
 			lineTo: function( line ){
 				console.log( line );
 				return true;
+			},
+			// 点击节点事件
+			clickNode: function( node ) {
+				console.log(node);
 			}
 		})
 	</script>
