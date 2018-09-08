@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="../src/drawTool.css">
+	<script type="text/javascript" src="../src/drawTool.js"></script>
+	<style type="text/css">
+		*{
+			margin: 0px;
+			padding: 0px;
+		}
+		#canvas{
+			width: 800px;
+			height: 600px;
+			border: solid 1px red;
+			margin: auto;
+			background: #fafafa;
+		}
+		.drawTool-node{
+			border:solid 1px red;
+			cursor: pointer;
+			border-radius: 50%;
+		}
+		.js-drawTool-inner-node{
+			width: 40px;
+			height: 40px;
+			text-align: center;
+    		line-height: 40px;
+		}
+	</style>
+</head>
+<body>
+	<div id="canvas" class="canvas">
+
+	</div>
+	<script type="text/javascript">
+		var canvas = document.getElementById('canvas');
+		var setting = {
+			lineColor: '#26b7d0',
+			lineHoverColor: '#aaa',
+			arrowColor: '#444',
+			lineStyle: 'none'// arrow, none
+		}
+		var drawTool = new DrawTool(canvas, setting);
+		var option = {
+			pos:{x:20,y:60},
+			html:"<div>盒子</div>",
+			anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
+		};
+
+		
+		function getOption(i) {
+			var option = {
+				pos:{x:20,y:60},
+				html:"<div>"+i+"</div>",
+				anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
+			};
+			return option;
+		}
+
+		for (var i = 65; i < 91; i++) {
+			drawTool.addNode(getOption(String.fromCharCode(i)));
+		}
+		
+
+
+		drawTool.listen({
+			clickLine: function( line ){
+				console.log( line )
+			},
+			deleteLine: function( line ){
+				return true;
+			},
+			lineTo: function( line ){
+				console.log( line );
+				return true;
+			}
+		})
+	</script>
+</body>
+</html>
