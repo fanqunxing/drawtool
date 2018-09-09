@@ -2,12 +2,16 @@
 	margin: 0px;
 	padding: 0px;
 }
+.header {
+	text-align: center;
+	font-weight: 700;
+}
 button, input, select{
 	width: 100%;
 }
 .left-box{
 	vertical-align: top;
-	width: 100px;
+	width: 150px;
 }
 .right-box {
 	vertical-align: top;

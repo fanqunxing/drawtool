@@ -3,7 +3,7 @@ var setting = {
 	lineColor: '#26b7d0',
 	lineHoverColor: '#aaa',
 	arrowColor: '#444',
-	// lineStyle: 'none'// arrow, none 
+	lineStyle: 'arrow' // none
 }
 
 var drawTool = new DrawTool(canvas, setting);
@@ -80,7 +80,6 @@ $("#canvas").delegate('.option', 'click', function() {
 	var nodeid = $(this).closest('.js-node').get(0).nodeid;
 	drawTool.deleteNodeById(nodeid);
 });
-
 
 
 

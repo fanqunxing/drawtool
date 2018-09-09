@@ -68,12 +68,8 @@
 .drawTool-hide{
 	display: none;
 }
-.drawTool-controller{
-	/*position: absolute;*/
-}
 .drawTool-controller-li{
 	display: inline-block;
-    /*border: solid 1px red;*/
     width: 20px;
     height: 20px;
     border-radius: 50%;
