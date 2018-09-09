@@ -563,7 +563,7 @@ function DrawTool( dom , setting)
 			ctrl2:[]
 		}
 		redraw();
-	　　	return false;
+	　　return false;
 	}
 
 
