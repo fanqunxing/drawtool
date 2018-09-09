@@ -43,13 +43,25 @@
 				<table>
 					<tr>
 						<td>
-							<button onclick="addNode()">新增节点</button>
-						</td>
-						<td>
 							<div class='node js-node'>
 								<div>test</div>
 								<button class="option">删除</button>
 							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="addNode()">新增节点</button>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="save()">保存</button>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="clear()">清除</button>
 						</td>
 					</tr>
 				</table>
@@ -116,7 +128,35 @@
 			clickNode: function( node ) {
 				console.log(node);
 			}
-		})
+		});
+
+
+		function save() {
+			var lineArr = drawTool.getAllLines();
+			var nodeArr = drawTool.getAllNodesInfo();
+			localStorage.setItem('lineArr', JSON.stringify(lineArr));
+			localStorage.setItem('nodeArr', JSON.stringify(nodeArr));
+		};
+
+		function clear() {
+			// localStorage.setItem('lineArr', '');
+			// localStorage.setItem('nodeArr', '');
+			localStorage.clear();
+		}
+
+		function init() {
+			var lineArr = JSON.parse(localStorage.getItem('lineArr'));
+			var nodeArr = JSON.parse(localStorage.getItem('nodeArr'));
+
+			drawTool.init(nodeArr, lineArr);
+		};
+
+		init();
+		// try{
+		// 	init();
+		// }catch(e) {
+		// }
+		
 	</script>
 </body>
 </html>

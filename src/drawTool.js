@@ -4,6 +4,12 @@
 
 })(this, function(){
 
+function toNumber (val)
+{
+  var n = parseFloat(val);
+  return isNaN(n) ? val : n;
+}
+
 function getWidth( dom )
 {
 	return dom.offsetWidth;
@@ -224,7 +230,7 @@ lineproto.push = function( line ){
 			maxId = this[i].lineid;
 		}
 	}
-	line.lineid = maxId+1;
+	line.lineid = line.lineid || (maxId + 1);
 	Array.prototype.push.call( this, line );
 	return line;
 }
@@ -254,7 +260,7 @@ lineproto.deleteByNodeId = function( nodeid ) {
 lineproto.getLineById = function( lineid )
 {
 	var line = null;
-	for(var i = 0; i < this.length; i++)
+	for (var i = 0; i < this.length; i++)
 	{
 		var oLine= this[i];
 		if( oLine.lineid == lineid )
@@ -264,8 +270,23 @@ lineproto.getLineById = function( lineid )
 		}
 	}
 	return line;
+};
+
+lineproto.toArray = function() {
+	var arr = []; 
+	for (var i = 0; i < this.length; i++) 
+	{
+		arr.push(this[i]);
+	}
+	return arr;
 }
 
+lineproto.clear = function()
+{
+	while (this.length) {
+		this.peek();
+	};
+};
 
 /**
  * 节点栈
@@ -285,7 +306,7 @@ nodeproto.push = function( node ){
 			maxId = this[i].nodeid;
 		}
 	}
-	node.nodeid = maxId+1;
+	node.nodeid = node.nodeid || (maxId+1);
 	Array.prototype.push.call( this, node );
 	return node;
 }
@@ -326,6 +347,15 @@ nodeproto.clear = function()
 	}
 	this.length = 0;
 };
+
+nodeproto.toArray = function() {
+	var arr = []; 
+	for (var i = 0; i < this.length; i++) 
+	{
+		arr.push(this[i]);
+	}
+	return arr;
+}
 
 function getAnchorPosById( anchorsLists, anchorid )
 {
@@ -1062,14 +1092,19 @@ function DrawTool( dom , setting)
 		node.style.left = nodeCfg.pos.x + "px";
 		node.style.top = nodeCfg.pos.y + "px";
 		node.innerHTML = nodeCfg.html;
+		node.htmlStr = nodeCfg.html;
+		node.nodeid = nodeCfg.nodeid || null;
 		var innerNode = node.children[0];
 		addClass(innerNode, Classes.innerNodeJs);
 		node.anchors = nodeCfg.anchors;
 		var stacknode = _nodeStack.push( node );
 		innerNode.setAttribute('node-id', stacknode.nodeid);
 		node.setAttribute('node-id', stacknode.nodeid);
+
 		node.nodeid = stacknode.nodeid;
 		innerNode.nodeid = stacknode.nodeid;
+
+
 		_dom.appendChild( node );
 		addAnchors( node );
 		return node;
@@ -1089,10 +1124,14 @@ function DrawTool( dom , setting)
 		for (var i = 0; i < _nodeStack.length; i++) 
 		{
 			var node = _nodeStack[i];
+			var left = toNumber(node.style.left),
+				top = toNumber(node.style.top);
+
 			var oNode = {
-				html: node.innerHTML,
+				html: node.htmlStr,
 				nodeid: node.nodeid,
-				dom: node
+				pos: {x: left, y: top},
+				anchors: node.anchors
 			}
 			nodeStack.push( oNode );
 
@@ -1102,12 +1141,12 @@ function DrawTool( dom , setting)
 
 	this.getAllNodes = function ()
 	{
-		return _nodeStack;
+		return _nodeStack.toArray();
 	}
 
 	this.getAllLines = function ()
 	{
-		return _lineStack;
+		return _lineStack.toArray();
 	}
 
 	this.listen = function( listenMap )
@@ -1121,11 +1160,13 @@ function DrawTool( dom , setting)
 		for( var i = 0; i < nodeStack.length; i++)
 		{
 			var node = nodeStack[i];
-			_dom.appendChild( node );
-			_nodeStack.push( node );
-			addAnchors( node );
+			this.addNode(node);
 		}
-		
+		_lineStack.clear();
+		for (var i = 0; i < lineStack.length; i++) {
+			_lineStack.push(lineStack[i]);
+		}
+		redraw();
 	}
 }
 
