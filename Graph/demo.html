@@ -27,6 +27,13 @@
 			cursor: pointer;
 			border-radius: 50%;
 		}
+		.in{
+			/*width: 20px;*/
+			/*background:red;*/
+		}
+		.option {
+			display: none;
+		}
 	</style>
 </head>
 <body>
@@ -37,6 +44,12 @@
 					<tr>
 						<td>
 							<button onclick="addNode()">新增节点</button>
+						</td>
+						<td>
+							<div class='node js-node'>
+								<div>test</div>
+								<button class="option">删除</button>
+							</div>
 						</td>
 					</tr>
 				</table>
@@ -61,17 +74,31 @@
 		function addNode() {
 			var option = {
 				pos:{x:20,y:20},
-				html:"<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
+				html:"<div class='node js-node'>\
+						<div class='in'>"+ String.fromCharCode(index) +"</div>\
+						<button class=\"option\">删除</button>\
+					  </div>",
+				// html: "<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
 				anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
 			};
 			drawTool.addNode(option);
-			index++;
+			index++; 
 		};
 
-		$("#canvas").delegate('.js-node', 'click', function() {
-			console.log(this);
+		$("#canvas").delegate('.js-node', 'mousemove', function(e) {
+			$(this).find('.option').show();
+		});
+
+		$("#canvas").delegate('.js-node', 'mouseleave', function() {
+			$(this).find('.option').hide();
+		});
+
+		$("#canvas").delegate('.option', 'click', function() {
+			var nodeid = $(this).closest('.js-node').get(0).nodeid;
+			drawTool.deleteNodeById(nodeid);
 		});
 		
+		// promise jq
 
 
 		drawTool.listen({

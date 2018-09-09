@@ -75,14 +75,31 @@ Event.on = function( elem, type, fn )
 	Event.on( elem, type, fn );
 }
 
+function findParent(pom, dom, className) 
+{
+	if (pom == dom) 
+	{
+		return null;
+	}
+	if (hasClass(dom, className)) 
+	{
+		return dom;
+	} 
+	else 
+	{
+		return findParent(pom, dom.parentNode, className)
+	}
+};
+
 Event.delegate = function( pdom, className, type, fn )
 {
 	Event.on( pdom, type, function( e ) {
 		var e = e || window.event;
 		var target = e.target || e.srcElement;
-		if( hasClass( target, className ) )
+		var pTarget = findParent(pdom, target, className );
+		if( pTarget )
 		{
-			fn.call( target, e );
+			fn.call( pTarget, e );
 		}
 	}, false);
 }
@@ -229,6 +246,7 @@ lineproto.deleteByNodeId = function( nodeid ) {
 			|| this[i].endNodeid == nodeid)
 		{
 			Array.prototype.splice.call( this, i, 1 );
+			i--;
 		}
 	}
 };
@@ -269,6 +287,7 @@ nodeproto.push = function( node ){
 	}
 	node.nodeid = maxId+1;
 	Array.prototype.push.call( this, node );
+	return node;
 }
 nodeproto.getNodeById = function( nodeid )
 {
@@ -596,7 +615,7 @@ function DrawTool( dom , setting)
 	{
 		var e = e || window.event;
 		var target = e.target || e.srcElement;
-		_activeDom = target.parentNode;
+		_activeDom = findParent(_dom, target, Classes.nodeJs);
 		_activeDom.relX = e.clientX - _activeDom.offsetLeft;
 		_activeDom.relY = e.clientY - _activeDom.offsetTop;
 		Event.on( _dom, "mousemove", mousemove );
@@ -1042,21 +1061,24 @@ function DrawTool( dom , setting)
 		node.className = Classes.nodeCss + " " + Classes.nodeJs;
 		node.style.left = nodeCfg.pos.x + "px";
 		node.style.top = nodeCfg.pos.y + "px";
-		console.log(nodeCfg.html);
 		node.innerHTML = nodeCfg.html;
 		var innerNode = node.children[0];
 		addClass(innerNode, Classes.innerNodeJs);
 		node.anchors = nodeCfg.anchors;
+		var stacknode = _nodeStack.push( node );
+		innerNode.setAttribute('node-id', stacknode.nodeid);
+		node.setAttribute('node-id', stacknode.nodeid);
+		node.nodeid = stacknode.nodeid;
+		innerNode.nodeid = stacknode.nodeid;
 		_dom.appendChild( node );
-		_nodeStack.push( node );
 		addAnchors( node );
 		return node;
 	}
 
 	this.deleteNodeById = function ( nodeid) 
 	{
-		var node = _nodeStack.deleteById(nodeid);
 		_lineStack.deleteByNodeId(nodeid);
+		var node = _nodeStack.deleteById(nodeid);
 		redraw();
 		return node;
 	}
