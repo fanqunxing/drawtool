@@ -221,7 +221,7 @@ lineproto.peek = function()
 	return this.length > 0
 			? this[this.length -1]
 			: undefined;
-}
+};
 lineproto.push = function( line ){
 	var maxId = 0;
 	for(var i = 0; i < this.length; i++)
@@ -285,7 +285,7 @@ lineproto.toArray = function() {
 lineproto.clear = function()
 {
 	while (this.length) {
-		this.peek();
+		this.pop();
 	};
 };
 
@@ -298,6 +298,12 @@ function NodeStack()
 }
 var nodeproto = NodeStack.prototype;
 nodeproto.pop = Array.prototype.pop;
+nodeproto.peek = function()
+{
+	return this.length > 0
+			? this[this.length -1]
+			: undefined;
+};
 nodeproto.push = function( node ){
 	var maxId = 0;
 	for(var i = 0; i < this.length; i++)
@@ -1118,6 +1124,17 @@ function DrawTool( dom , setting)
 		var node = _nodeStack.deleteById(nodeid);
 		redraw();
 		return node;
+	}
+
+	this.clear = function() 
+	{
+		while (_nodeStack.length) 
+		{
+			var node = _nodeStack.peek();
+			_lineStack.deleteByNodeId(node.nodeid);
+			_nodeStack.deleteById(node.nodeid);
+		};
+		redraw();
 	}
 
 	this.getAllNodesInfo = function ()

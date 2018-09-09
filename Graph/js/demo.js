@@ -35,8 +35,7 @@ function save() {
 };
 
 function clearMap() {
-	localStorage.clear();
-	init();
+	drawTool.clear();
 };
 
 function init() {
@@ -62,6 +61,10 @@ function addNode() {
 
 
 $("#canvas").delegate('.js-node', 'mousemove', function(e) {
+	clearTimeout(this.timer);
+});
+
+$("#canvas").delegate('.js-node', 'contextmenu ', function(e) {
 	clearTimeout(this.timer);
 	$(this).find('.option').show();
 });

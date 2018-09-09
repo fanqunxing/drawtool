@@ -9,6 +9,11 @@ button, input, select{
 	vertical-align: top;
 	width: 100px;
 }
+.right-box {
+	vertical-align: top;
+	width: 200px;
+	font-size: 12px;
+}
 #canvas{
 	width: 800px;
 	height: 400px;
