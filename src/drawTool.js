@@ -1,10 +1,11 @@
-(function(root, factor){
+(function( global, factory ){
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+  	typeof define === 'function' && define.cmd ? define(factory) :
+	( global.DrawTool = factory() );
+})( this, function(){
 
-	root.DrawTool = factor();
-
-})(this, function(){
-
-function toNumber (val)
+function toNumber( val )
 {
   var n = parseFloat(val);
   return isNaN(n) ? val : n;
@@ -491,6 +492,8 @@ function hasCtrl( line )
 	return bFlag;
 }
 
+
+
 function DrawTool( dom , setting)
 {
 	var _dom = dom;
@@ -524,8 +527,7 @@ function DrawTool( dom , setting)
 		},
 		lineTo: function lineTo() {
 			return true;
-		},
-		clickNode: new Function()
+		}
 	};
 	var _setting = extend({
 		lineColor: '#26b7d0',
@@ -1110,7 +1112,7 @@ function DrawTool( dom , setting)
 		return node;
 	}
 
-	this.deleteNodeById = function ( nodeid) 
+	this.deleteNodeById = function ( nodeid ) 
 	{
 		_lineStack.deleteByNodeId(nodeid);
 		var node = _nodeStack.deleteById(nodeid);

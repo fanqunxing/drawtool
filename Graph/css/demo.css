@@ -1,0 +1,49 @@
+*{
+	margin: 0px;
+	padding: 0px;
+}
+button, input, select{
+	width: 100%;
+}
+.left-box{
+	vertical-align: top;
+	width: 100px;
+}
+#canvas{
+	width: 800px;
+	height: 400px;
+	border: solid 1px red;
+	margin: auto;
+	background: #fafafa;
+}
+.node{
+	width: 40px;
+	height: 40px;
+	text-align: center;
+	line-height: 40px;
+	cursor: pointer;
+	border-radius: 50%;
+}
+.in{
+	width: 40px;
+    height: 40px;
+    background-size: 95%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.car {
+	background-image: url(../img/car.png);
+}
+.board {
+	background-image: url(../img/board.png);
+}
+.fly {
+	background-image: url(../img/fly.png);
+}
+.custom {
+	border: 1px solid #333;
+	border-radius: 50%;
+}
+.option {
+	display: none;
+}
