@@ -5,6 +5,24 @@
 	( global.DrawTool = factory() );
 })( this, function(){
 
+var op = Object.prototype;
+var ostring = op.toString;
+
+function isFunction( it )
+{
+   return ostring.call( it ) === '[object Function]';
+}
+
+function isArray( it ) 
+{
+   return ostring.call( it ) === '[object Array]';
+}
+
+function isObject( obj ) 
+{
+  return obj !== null && typeof obj === 'object';
+}
+
 function toNumber( val )
 {
   var n = parseFloat(val);
@@ -528,12 +546,14 @@ function DrawTool( dom , setting)
 	var _ctrlMap = addBezierControl( _dom );
 	var _listenMap = {
 		clickLine: new Function(),
-		deleteLine: function deleteLine() {
+		deleteLineBefore: function deleteLineBefore() {
 			return true;
 		},
-		lineTo: function lineTo() {
+		deleteLineAfter: new Function(),
+		linkLineBefore: function linkLineBefore() {
 			return true;
-		}
+		},
+		linkLineAfter: new Function()
 	};
 	var _setting = extend({
 		lineColor: '#26b7d0',
@@ -667,13 +687,14 @@ function DrawTool( dom , setting)
 		var anchorid = e.target.anchorid;
 		if( _activeline.startNodeid )
 		{
-			var isLineTo = _listenMap.lineTo.call( this, _activeline );
+			var isLineTo = _listenMap.linkLineBefore.call( this, _activeline );
 			if( isLineTo )
 			{
 				_activeline.endNodeid = nodeid;
 				_activeline.endAnchorid = anchorid;
 				_activeline.lineType = _lineType;
 				_lineStack.push( _activeline );
+				_listenMap.linkLineAfter.call( this, _activeline );
 				_activeline = {};
 			}
 			else
@@ -693,12 +714,13 @@ function DrawTool( dom , setting)
 	function clickDeleteLine( e )
 	{
 		var lineid = _selectedLine.lineid;
-	 	var isDelete = _listenMap.deleteLine.call( this, _selectedLine );
+	 	var isDelete = _listenMap.deleteLineBefore.call( this, _selectedLine );
 	 	if( isDelete )
 	 	{
 	 		_lineStack.deleteById( lineid );
 			hideDom( _operate );
 			redraw();
+			_listenMap.deleteLineAfter.call( this, _selectedLine );
 	        _selectedLine = null;//释放选中线条
 	 	}
 		
@@ -864,7 +886,6 @@ function DrawTool( dom , setting)
 					allPos.end[1], 
 					0
 		        );
-		        // _listenMap.clickLine( oLine );//点击切面
 		        resLine = oLine;
 		        break;
 		    }
@@ -1168,9 +1189,18 @@ function DrawTool( dom , setting)
 		return _lineStack.toArray();
 	}
 
-	this.listen = function( listenMap )
+	this.listen = function ()
 	{
-		_listenMap = extend( _listenMap, listenMap );
+		if( arguments.length === 1 && isObject(arguments[0]))
+		{
+			_listenMap = extend( _listenMap, arguments[0] );
+		} 
+		else if ( arguments.length >= 2 && isFunction(arguments[1]))
+		{
+			var type = arguments[0];
+			var fn = arguments[1];
+			_listenMap[type] = fn;
+		}
 	}
 
 	this.init = function( nodeStack, lineStack )

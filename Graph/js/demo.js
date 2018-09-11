@@ -16,13 +16,22 @@ drawTool.listen({
 	clickLine: function( line ) {
 		console.log( line );
 	},
-	deleteLine: function( line ) {
+	deleteLineBefore: function(line) {
 		return true;
 	},
-	lineTo: function( line ) {
-		console.log( line );
+	deleteLineAfter: function(line) {
+		console.log(line);
+	},
+	linkLineBefore: function(line) {
 		return true;
+	},
+	linkLineAfter: function(line) {
+		console.log(line);
 	}
+});
+
+drawTool.listen('clickLine', function(line) {
+	console.log(line);
 });
 
 init();
