@@ -7,42 +7,65 @@
 
 var op = Object.prototype;
 var ostring = op.toString;
+var hasOwn = op.hasOwnProperty;
 
 function isFunction( it )
 {
-   return ostring.call( it ) === '[object Function]';
-}
+	return ostring.call( it ) === '[object Function]';
+};
 
 function isArray( it ) 
 {
-   return ostring.call( it ) === '[object Array]';
-}
+	return ostring.call( it ) === '[object Array]';
+};
 
 function isObject( obj ) 
 {
-  return obj !== null && typeof obj === 'object';
-}
+	return obj !== null && typeof obj === 'object';
+};
 
 function toNumber( val )
 {
-  var n = parseFloat(val);
-  return isNaN(n) ? val : n;
-}
+	var n = parseFloat(val);
+	return isNaN(n) ? val : n;
+};
+
+function hasProp( obj, prop ) 
+{
+	return hasOwn.call(obj, prop);
+};
+
+function extend( to, from ) 
+{
+	for (var key in from) 
+	{
+		if (hasProp( from, key ) && from[key]) 
+		{
+			to[key] = from[key];
+		};
+	};
+	return to;
+};
+
+function error( msg )
+{
+	throw new Error( "drawTool.js error: " + msg );
+};
 
 function getWidth( dom )
 {
 	return dom.offsetWidth;
-}
+};
 
 function getHeight( dom )
 {
 	return dom.offsetHeight;
-}
+};
 
 function hasClass( dom, className ) 
 {
     return (' ' + dom.className + ' ').indexOf(' ' + className + ' ') > -1;
-}
+};
 
 function addClass( dom, className )
 {
@@ -54,8 +77,7 @@ function addClass( dom, className )
 	{
 		dom.className = dom.className + ' ' + className;
 	}
-}
-
+};
 
 function removeClass( dom, className ) 
 {
@@ -68,7 +90,7 @@ function removeClass( dom, className )
 		}
 		dom.className = newClass.replace(/^\s+|\s+$/g, '');
 	}
-}
+};
 
 function addCanvas( dom )
 {
@@ -77,8 +99,7 @@ function addCanvas( dom )
 	canvas.height = getHeight( dom );
 	dom.appendChild( canvas );
 	return canvas;
-}
-
+};
 
 var Event = new Object();
 Event.on = function( elem, type, fn )
@@ -98,7 +119,7 @@ Event.on = function( elem, type, fn )
 		}
 	}
 	Event.on( elem, type, fn );
-}
+};
 
 function findParent(pom, dom, className) 
 {
@@ -127,7 +148,7 @@ Event.delegate = function( pdom, className, type, fn )
 			fn.call( pTarget, e );
 		}
 	}, false);
-}
+};
 
 Event.off = function( elem, type, fn )
 {
@@ -146,8 +167,7 @@ Event.off = function( elem, type, fn )
 		}
 	}
 	Event.off( elem, type, fn );
-}
-
+};
 
 function getMousePos( e )
 {
@@ -157,7 +177,7 @@ function getMousePos( e )
     var x = e.pageX || e.clientX + scrollX;
     var y = e.pageY || e.clientY + scrollY;
     return { x : x, y : y }
-}
+};
 
 function getTargetPos( target, e )
 {
@@ -168,14 +188,13 @@ function getTargetPos( target, e )
 	var x = targetPos.left + scrollX ;
 	var y = targetPos.top + scrollY;
 	return { x: ( mousePos.x - x ), y : ( mousePos.y -y )}
-}
+};
 
 
 function clearCanvas( ctx , canvas )
 {
 	ctx.clearRect( 0, 0, getWidth( canvas ), getHeight( canvas ) );
-}
-
+};
 
 var Classes = {
 	showCss:"drawTool-show",
@@ -195,7 +214,8 @@ var Classes = {
 	controller: "drawTool-controller",
 	ctrlli: "drawTool-controller-li",
 	ctrlJs: "js-drawTool-controller-li"
-}
+};
+
 encryptClasses(Classes);
 
 function encryptClasses()
@@ -206,22 +226,19 @@ function encryptClasses()
 			Classes[key] += '-' + Math.floor(Math.random() * new Date().getTime()); 
 		}
 	}
-}
-
+};
 
 function showDom( dom )
 {
 	addClass( dom, Classes.showCss );
 	removeClass( dom, Classes.hideCss )
-}
+};
 
 function hideDom( dom )
 {
 	addClass( dom, Classes.hideCss );
 	removeClass( dom, Classes.showCss )
-}
-
-
+};
 
 /**
  * 线栈
@@ -229,9 +246,10 @@ function hideDom( dom )
 function LineStack()
 {
 	this.length = 0;
-}
+};
 
 var lineproto = LineStack.prototype;
+
 lineproto.pop = Array.prototype.pop;
 
 lineproto.peek = function()
@@ -240,6 +258,7 @@ lineproto.peek = function()
 			? this[this.length -1]
 			: undefined;
 };
+
 lineproto.push = function( line ){
 	var maxId = 0;
 	for(var i = 0; i < this.length; i++)
@@ -252,7 +271,8 @@ lineproto.push = function( line ){
 	line.lineid = line.lineid || (maxId + 1);
 	Array.prototype.push.call( this, line );
 	return line;
-}
+};
+
 lineproto.deleteById = function( lineid ){
 	for(var i = 0; i < this.length; i++)
 	{
@@ -298,7 +318,7 @@ lineproto.toArray = function() {
 		arr.push(this[i]);
 	}
 	return arr;
-}
+};
 
 lineproto.clear = function()
 {
@@ -313,15 +333,19 @@ lineproto.clear = function()
 function NodeStack()
 {
 	this.length = 0;
-}
+};
+
 var nodeproto = NodeStack.prototype;
+
 nodeproto.pop = Array.prototype.pop;
+
 nodeproto.peek = function()
 {
 	return this.length > 0
 			? this[this.length -1]
 			: undefined;
 };
+
 nodeproto.push = function( node ){
 	var maxId = 0;
 	for(var i = 0; i < this.length; i++)
@@ -334,7 +358,8 @@ nodeproto.push = function( node ){
 	node.nodeid = node.nodeid || (maxId+1);
 	Array.prototype.push.call( this, node );
 	return node;
-}
+};
+
 nodeproto.getNodeById = function( nodeid )
 {
 	var node = null;
@@ -348,7 +373,8 @@ nodeproto.getNodeById = function( nodeid )
 		}
 	}
 	return node;
-}
+};
+
 nodeproto.deleteById = function( nodeid ) {
 	var node = null;
 	for(var i = 0; i < this.length; i++)
@@ -380,7 +406,7 @@ nodeproto.toArray = function() {
 		arr.push(this[i]);
 	}
 	return arr;
-}
+};
 
 function getAnchorPosById( anchorsLists, anchorid )
 {
@@ -402,21 +428,7 @@ function getAnchorPosById( anchorsLists, anchorid )
 		}
 	}
 	return pos;
-}
-
-
-function extend( to, _from ) 
-{
-	for (var key in _from) 
-	{
-		if (_from[key]) {
-			to[key] = _from[key];
-		}
-	}
-	return to;
-}
-
-
+};
 
 function addLineOperate( dom )
 {
@@ -520,49 +532,50 @@ function hasCtrl( line )
 
 function DrawTool( dom , setting)
 {
-	var _dom = dom;
-	var _activeDom = null;
-	var _activeCtrl = null;
-	var _canvas = null;
-	var _ctx = null;
-	var _lineStack = new LineStack();
-	var _nodeStack = new NodeStack();
-	var _activeline = {
-		startNodeid : false,
-		startAnchorid : false,
-		endNodeid : false,
-		endAnchorid : false,
-		ctrl1:[],
-		ctrl2:[]
-	}
-	var _isSelectedLine = false;
-	var _selectedLine = null;
-	var _operateLine = null;
-	var _lineType = "bezier";
-	addClass( _dom , Classes.rootCss );
-	_canvas = addCanvas( _dom );
-	_ctx = _canvas.getContext( "2d" );
-	var _operate = addLineOperate( _dom );
-	var _ctrlMap = addBezierControl( _dom );
-	var _listenMap = {
-		clickLine: new Function(),
-		deleteLineBefore: function deleteLineBefore() {
-			return true;
+	var _dom = dom,
+		_activeDom = null,
+		_activeCtrl = null,
+		_canvas = null,
+		_ctx = null,
+		_lineStack = new LineStack(),
+		_nodeStack = new NodeStack(),
+		_isSelectedLine = false,
+		_selectedLine = null,
+		_operateLine = null,
+		_lineType = "bezier",
+		_operate = addLineOperate( _dom ),
+		_ctrlMap = addBezierControl( _dom ),
+		_listenMap = {
+			clickLine: new Function(),
+			deleteLineBefore: function deleteLineBefore() {
+				return true;
+			},
+			deleteLineAfter: new Function(),
+			linkLineBefore: function linkLineBefore() {
+				return true;
+			},
+			linkLineAfter: new Function()
 		},
-		deleteLineAfter: new Function(),
-		linkLineBefore: function linkLineBefore() {
-			return true;
-		},
-		linkLineAfter: new Function()
-	};
-	var _setting = extend({
-		lineColor: '#26b7d0',
-		lineHoverColor: '#aaa',
-		arrowColor: '#444',
-		lineStyle: 'arrow'// arrow, line
-	}, setting);
+		_setting = extend({
+			lineColor: '#26b7d0',
+			lineHoverColor: '#aaa',
+			arrowColor: '#444',
+			lineStyle: 'arrow'// arrow, line
+		}, setting),
+		_activeline = {
+			startNodeid : false,
+			startAnchorid : false,
+			endNodeid : false,
+			endAnchorid : false,
+			ctrl1:[],
+			ctrl2:[]
+		};
 
-
+	(function init(){
+		addClass( _dom , Classes.rootCss );
+		_canvas = addCanvas( _dom );
+		_ctx = _canvas.getContext( "2d" );
+	})();
 
 	Event.delegate( _dom, Classes.innerNodeJs, "mousedown", mousedownOnNode);
 
@@ -580,7 +593,6 @@ function DrawTool( dom , setting)
 
 	Event.on( _dom, "mouseup", mouseup );
 
-
 	_dom.oncontextmenu = function(){
 		_activeline = {
 			startNodeid : false,
@@ -592,8 +604,7 @@ function DrawTool( dom , setting)
 		}
 		redraw();
 	　　return false;
-	}
-
+	};
 
 	function mousedownCtrl( e )
 	{
@@ -601,9 +612,8 @@ function DrawTool( dom , setting)
 		_activeCtrl.relX = e.clientX - _activeCtrl.offsetLeft;
 		_activeCtrl.relY = e.clientY - _activeCtrl.offsetTop;
 		Event.on( _dom, "mousemove", mousemoveCtrl );
-	}
+	};
 
-	
 	function mousemoveCtrl( e )
 	{
 		if( _activeCtrl )
@@ -618,14 +628,13 @@ function DrawTool( dom , setting)
 		    ];
 			redraw();
 		}
-	}
+	};
 
 	function mouseupCtrl( e )
 	{
 		Event.off( _dom, "mousemove", mousemoveCtrl );
 		_activeCtrl = null;
-	}
-
+	};
 
 	function operateEditLine()
 	{
@@ -666,8 +675,7 @@ function DrawTool( dom , setting)
 			ctrl2.style.left = oLine.ctrl2[0] - c2WidHalf  + "px";
 			ctrl2.style.top = oLine.ctrl2[1]  - c2HeiHalf  + "px";
 		}
-	}
-
+	};
 
 	function mousedownOnNode( e )
 	{
@@ -677,7 +685,7 @@ function DrawTool( dom , setting)
 		_activeDom.relX = e.clientX - _activeDom.offsetLeft;
 		_activeDom.relY = e.clientY - _activeDom.offsetTop;
 		Event.on( _dom, "mousemove", mousemove );
-	}
+	};
 
 	function clickOnAnchor( e )
 	{
@@ -709,7 +717,7 @@ function DrawTool( dom , setting)
 			_activeline.startNodeid = nodeid;
 			_activeline.startAnchorid = anchorid;
 		}
-	}
+	};
 
 	function clickDeleteLine( e )
 	{
@@ -724,7 +732,7 @@ function DrawTool( dom , setting)
 	        _selectedLine = null;//释放选中线条
 	 	}
 		
-	}
+	};
 
 	function mousemoveOnDom( e )
 	{
@@ -733,8 +741,7 @@ function DrawTool( dom , setting)
 		drawSelectedLine();
         selectedLineHover( x, y );
 		linkAllLines();
-	}
-
+	};
 
 	function clickOnDom( e )
 	{
@@ -759,8 +766,7 @@ function DrawTool( dom , setting)
 			hideDom( _ctrlMap.ctrl );
 		}
 		redraw();
-	}
-
+	};
 
 	function mousemoveline( e )
 	{
@@ -775,13 +781,13 @@ function DrawTool( dom , setting)
 		var divideMap = divide( start, [end.x, end.y] , 3 );
 		redraw();
 		lineTo( _ctx, start, [end.x, end.y], divideMap[1], divideMap[2] );
-	}
+	};
 
 	function redraw() {
 		clearCanvas( _ctx , _canvas );
 		drawSelectedLine();
 		linkAllLines();
-	}
+	};
 
 	function mousemove( e )
 	{
@@ -793,20 +799,19 @@ function DrawTool( dom , setting)
 			clearCanvas( _ctx, _canvas );
 			linkAllLines();
 		}
-	}
+	};
 
 	function mouseup( e )
 	{
 		mouseupActiveDom( e );
 		mouseupCtrl( e );
-	}
+	};
 
 	function mouseupActiveDom( e )
 	{
 		Event.off( _dom, "mousemove", mousemove );
 		_activeDom = null;
-	}
-
+	};
 
 	function linkAllLines()
 	{
@@ -818,8 +823,7 @@ function DrawTool( dom , setting)
 			var ctrl2 = oLine.ctrl2;
 			lineTo( _ctx, allPos.start, allPos.end, ctrl1, ctrl2 );
 		}
-	}
-
+	};
 
 	function drawSelectedLine()
 	{
@@ -840,15 +844,14 @@ function DrawTool( dom , setting)
 				0
 	        )
 		}
-	}
-
+	};
 
 	function getSelectedLineByEvt( e )
 	{
 		var x = e.pageX - _canvas.getBoundingClientRect().left;
         var y = e.pageY - _canvas.getBoundingClientRect().top;
         return selectedLineHover( x, y );
-	}
+	};
 
 	function selectedLineHover( x, y )
 	{
@@ -895,8 +898,7 @@ function DrawTool( dom , setting)
 		    }
 		}
 		return resLine;
-	}
-
+	};
 
 	function sightlineTo( ctx, start, end )
 	{
@@ -922,9 +924,7 @@ function DrawTool( dom , setting)
 
 		ctx.restore();
 		return ctx;
-	}
-
-
+	};
 
 	function bezierlineTo(ctx, p1X, p1Y, p2X, p2Y, p3X, p3Y, p4X, p4Y, nodeRad) 
 	{
@@ -965,7 +965,6 @@ function DrawTool( dom , setting)
 	    ctx.restore();
 	};
 
-
 	function drawLineSelected( ctx, p1X, p1Y, p2X, p2Y, p3X, p3Y, p4X, p4Y, nodeRad)
 	{
 		var isArrow = (_setting.lineStyle === 'arrow');
@@ -991,8 +990,7 @@ function DrawTool( dom , setting)
 	    
 	    ctx.restore();
 	    return ctx;
-	}
-
+	};
 
 	/**
 	 * 此算法只提供选择线条
@@ -1044,7 +1042,6 @@ function DrawTool( dom , setting)
 	    p4Xu = p4Xu - dδ*Math.cos( θ2 );
 	    p4Yu = p4Yu - dδ*Math.sin( θ2 );
 
-
 	    var k = (nodeRad+10) / (Math.sqrt((p3Xu - p4Xu) * (p3Xu - p4Xu) + (p3Yu - p4Yu) * (p3Yu - p4Yu))); 
 	    var innerK = nodeRad / (Math.sqrt((p3Xu - p4Xu) * (p3Xu - p4Xu) + (p3Yu - p4Yu) * (p3Yu - p4Yu)));
 	    var arrowEndX = p4Xu + innerK * (p3Xu - p4Xu);
@@ -1056,7 +1053,6 @@ function DrawTool( dom , setting)
 	    ctx.lineTo(bezierEndXd, bezierEndYd);
 	    ctx.lineTo(bezierEndXu, bezierEndYu);
 
-
 	    ctx.lineTo(bezierEndXu, bezierEndYu);
 	    ctx.bezierCurveTo(p3Xu, p3Yu, p2Xu, p2Yu, p1Xu, p1Yu);
 
@@ -1065,10 +1061,7 @@ function DrawTool( dom , setting)
 	    ctx.restore();
 
 	    return ctx.isPointInPath(pos[0], pos[1]);
-	}
-
-
-
+	};
 
 	function lineTo( ctx, start, end , ctrl1, ctrl2 )
 	{
@@ -1091,8 +1084,7 @@ function DrawTool( dom , setting)
 			bezierlineTo( ctx, start[0], start[1], ctrl1[0], ctrl1[1], ctrl2[0], ctrl2[1], end[0], end[1], 0);
 		}
 		
-	}
-
+	};
 
 	function getAllPosByLine( oLine )
 	{
@@ -1105,15 +1097,8 @@ function DrawTool( dom , setting)
 		var divideMap = divide( start, end , 3 );
 		var resMap = extend({ start: start, end: end }, divideMap );
 		return resMap;
-	}
+	};
 
-
-	/*
-	{
-		pos:{x:0,y:0},
-		html:"<div>盒子</div>"
-	}
-	*/
 	this.addNode = function ( nodeCfg )
 	{
 		var node = document.createElement( "div" );
@@ -1137,15 +1122,19 @@ function DrawTool( dom , setting)
 		_dom.appendChild( node );
 		addAnchors( node );
 		return node;
-	}
+	};
 
-	this.deleteNodeById = function ( nodeid ) 
+	this.deleteNodeById = function ( )
 	{
-		_lineStack.deleteByNodeId(nodeid);
-		var node = _nodeStack.deleteById(nodeid);
-		redraw();
-		return node;
-	}
+		if (arguments.length > 0)
+		{
+			var nodeid = toNumber( arguments[0] );
+			_lineStack.deleteByNodeId(nodeid);
+			var node = _nodeStack.deleteById(nodeid);
+			redraw();
+			return node;
+		}
+	};
 
 	this.clear = function() 
 	{
@@ -1156,7 +1145,7 @@ function DrawTool( dom , setting)
 			_nodeStack.deleteById(node.nodeid);
 		};
 		redraw();
-	}
+	};
 
 	this.getAllNodesInfo = function ()
 	{
@@ -1177,34 +1166,38 @@ function DrawTool( dom , setting)
 
 		}
 		return nodeStack;
-	}
+	};
 
 	this.getAllNodes = function ()
 	{
 		return _nodeStack.toArray();
-	}
+	};
 
 	this.getAllLines = function ()
 	{
 		return _lineStack.toArray();
-	}
+	};
 
 	this.listen = function ()
 	{
-		if( arguments.length === 1 && isObject(arguments[0]))
+		if( arguments.length === 1 && isObject(arguments[0]) )
 		{
 			_listenMap = extend( _listenMap, arguments[0] );
-		} 
-		else if ( arguments.length >= 2 && isFunction(arguments[1]))
+		}
+		else if ( arguments.length >= 2 && isFunction(arguments[1]) )
 		{
 			var type = arguments[0];
 			var fn = arguments[1];
 			_listenMap[type] = fn;
-		}
-	}
+		};
+	};
 
 	this.init = function( nodeStack, lineStack )
 	{
+		if ( !isArray( nodeStack ) || !isArray( lineStack ) )
+		{
+			error( 'unknown arguments in init(nodeStack,lineStack)' );
+		};
 		_nodeStack.clear();
 		for( var i = 0; i < nodeStack.length; i++)
 		{
@@ -1216,9 +1209,8 @@ function DrawTool( dom , setting)
 			_lineStack.push(lineStack[i]);
 		}
 		redraw();
-	}
-}
-
+	};
+};
 
 return DrawTool;
 
