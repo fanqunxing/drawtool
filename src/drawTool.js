@@ -1212,6 +1212,8 @@ function DrawTool( dom , setting)
 	};
 };
 
+DrawTool.version = '1.0';
+
 return DrawTool;
 
 });
