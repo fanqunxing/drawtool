@@ -1212,7 +1212,7 @@ function DrawTool( dom , setting)
 	};
 };
 
-DrawTool.version = '1.0';
+DrawTool.version = '1.2';
 
 return DrawTool;
 
