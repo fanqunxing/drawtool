@@ -231,7 +231,7 @@ function encryptClasses()
 function showDom( dom )
 {
 	addClass( dom, Classes.showCss );
-	removeClass( dom, Classes.hideCss )
+	removeClass( dom, Classes.hideCss );
 };
 
 function hideDom( dom )
@@ -780,10 +780,11 @@ function DrawTool( dom , setting)
 		var end = getTargetPos( _canvas, e);
 		var divideMap = divide( start, [end.x, end.y] , 3 );
 		redraw();
-		lineTo( _ctx, start, [end.x, end.y], divideMap[1], divideMap[2] );
+		linkLineTo( _ctx, start, [end.x, end.y], divideMap[1], divideMap[2] );
 	};
 
-	function redraw() {
+	function redraw()
+	{
 		clearCanvas( _ctx , _canvas );
 		drawSelectedLine();
 		linkAllLines();
@@ -821,7 +822,7 @@ function DrawTool( dom , setting)
 			var allPos = getAllPosByLine( oLine );
 			var ctrl1 = oLine.ctrl1;
 			var ctrl2 = oLine.ctrl2;
-			lineTo( _ctx, allPos.start, allPos.end, ctrl1, ctrl2 );
+			linkLineTo( _ctx, allPos.start, allPos.end, ctrl1, ctrl2 );
 		}
 	};
 
@@ -1063,7 +1064,7 @@ function DrawTool( dom , setting)
 	    return ctx.isPointInPath(pos[0], pos[1]);
 	};
 
-	function lineTo( ctx, start, end , ctrl1, ctrl2 )
+	function linkLineTo( ctx, start, end , ctrl1, ctrl2 )
 	{
 		// 画直线
 		if( ( !ctrl1 && !ctrl2 )  || ( ctrl1 && ctrl1.length == 0  && ctrl2 && ctrl2.length == 0 ) )
@@ -1205,7 +1206,8 @@ function DrawTool( dom , setting)
 			this.addNode(node);
 		}
 		_lineStack.clear();
-		for (var i = 0; i < lineStack.length; i++) {
+		for (var i = 0; i < lineStack.length; i++) 
+		{
 			_lineStack.push(lineStack[i]);
 		}
 		redraw();
