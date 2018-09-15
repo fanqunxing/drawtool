@@ -169,9 +169,9 @@ Event.off = function( elem, type, fn )
 	Event.off( elem, type, fn );
 };
 
-function getMousePos( e )
+function getMousePos( evt )
 {
-	var e = event || window.event;
+	var e = window.event || evt;
     var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
     var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
     var x = e.pageX || e.clientX + scrollX;
