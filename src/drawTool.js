@@ -539,7 +539,6 @@ function DrawTool( dom , setting)
 		_ctx = null,
 		_lineStack = new LineStack(),
 		_nodeStack = new NodeStack(),
-		_isSelectedLine = false,
 		_selectedLine = null,
 		_operateLine = null,
 		_lineType = "bezier",
@@ -756,7 +755,6 @@ function DrawTool( dom , setting)
 			var pos = getTargetPos( _dom,  e );
 			_operate.style.left = pos.x + "px";
 			_operate.style.top = pos.y + "px";
-			_isSelectedLine = true;
 			_listenMap.clickLine.call( this, _selectedLine );//选中线的切面
 			showDom( _operate );
 		}
@@ -1214,7 +1212,7 @@ function DrawTool( dom , setting)
 	};
 };
 
-DrawTool.version = '1.2';
+DrawTool.version = '1.1.1';
 
 return DrawTool;
 
