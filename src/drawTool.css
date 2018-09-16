@@ -8,11 +8,15 @@
 	position: relative;
 }
 
-.drawTool-content-root .drawTool-node{
+.drawTool-canvas {
+    position: absolute;
+}
+
+.drawTool-content-root .drawTool-node {
 	display: inline-block;
 	position: absolute;
-
 }
+
 .drawTool-content-root .drawTool-node:hover .drawTool-anchor{
     visibility: visible;
 }

@@ -8,10 +8,26 @@ var setting = {
 
 var drawTool = new DrawTool(canvas, setting);
 
+addNode(20, 20);
+addNode(140, 140);
+addNode(200, 140);
+addNode(140, 200);
+function addNode(x, y) {
+	var type = $("#type").val();
+	var text = $('#text').val();
+	var option = {
+		pos:{x:x,y:y},
+		html:"<div class='node js-node'>\
+				<div class='in " + type + "'>"+ text +"</div>\
+				<button class=\"option\">删除</button>\
+			  </div>",
+		// html: "<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
+		anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
+	};
+	drawTool.addNode(option);
+};
 
-/**
- * 事件监听
- */
+/*
 drawTool.listen({
 	clickLine: function( line ) {
 		console.log( line );
@@ -53,20 +69,7 @@ function init() {
 	drawTool.init(nodeArr, lineArr);
 };
 
-function addNode() {
-	var type = $("#type").val();
-	var text = $('#text').val();
-	var option = {
-		pos:{x:20,y:20},
-		html:"<div class='node js-node'>\
-				<div class='in " + type + "'>"+ text +"</div>\
-				<button class=\"option\">删除</button>\
-			  </div>",
-		// html: "<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
-		anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
-	};
-	drawTool.addNode(option);
-};
+
 
 
 $("#canvas").delegate('.js-node', 'mousemove', function(e) {
@@ -89,7 +92,7 @@ $("#canvas").delegate('.option', 'click', function() {
 	var nodeid = $(this).closest('.js-node').get(0).nodeid;
 	drawTool.deleteNodeById(nodeid);
 });
-
+*/
 
 
 
