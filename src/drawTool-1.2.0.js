@@ -10,6 +10,7 @@ var op = Object.prototype;
 var ap = Array.prototype;
 var ostring = op.toString;
 var hasOwn = op.hasOwnProperty;
+var defaultfn = new Function();
 
 function isUndef (v) {
   return v === undefined || v === null;
@@ -31,8 +32,12 @@ function isFunction (it) {
 	return ostring.call(it) === '[object Function]';
 };
 
-function isArray(it) {
+function isArray (it) {
     return ostring.call(it) === '[object Array]';
+};
+
+function isObject (obj) {
+	return obj !== null && typeof obj === 'object';
 };
 
 function hasProp (obj, prop) {
@@ -72,11 +77,10 @@ function once (fn) {
 }
 
 function aop (setting) {
-	var func = new Function ();
 	setting = mixin(setting, {
-		before: func,
-		fun: func,
-		after:func
+		before: defaultfn,
+		fun: defaultfn,
+		after:defaultfn
 	});
 	return function () {
 		setting.before.apply(setting.before, arguments);
@@ -188,7 +192,7 @@ function getMousePos (evt) {
     var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
     var x = e.pageX || e.clientX + scrollX;
     var y = e.pageY || e.clientY + scrollY;
-    return { x : x, y : y }
+    return { x : x, y : y };
 };
 
 function getTargetPos (target, e) {
@@ -407,7 +411,8 @@ lineproto.clear = function () {
 /*
  * 线
  */
-function Line (type) {
+function Line (type, style) {
+	this.lineid = null;
 	this.startNodeid = null;
 	this.startAnchorid = null;
 	this.startElem = null;
@@ -419,6 +424,18 @@ function Line (type) {
 	this.type = type || 'bezier';
 	// 0 init 1 start 2 end
 	this.status = 0;
+	this.style = style || 'none';
+};
+
+Line.prototype.setType = function (type) {
+	// broken bezier
+	this.type = type;
+	return this;
+};
+
+Line.prototype.setStyle = function (style) {
+	this.style = style;
+	return this;
 };
 
 Line.prototype.setStart = function (anchor) {
@@ -426,6 +443,7 @@ Line.prototype.setStart = function (anchor) {
 	this.startAnchorid = anchor.anchorid;
 	this.startElem = anchor;
 	this.status = 1;
+	return this;
 };
 
 Line.prototype.setEnd = function (anchor) {
@@ -433,6 +451,7 @@ Line.prototype.setEnd = function (anchor) {
 	this.endAnchorid = anchor.anchorid;
 	this.endElem = anchor;
 	this.status = 2;
+	return this;
 }
 
 Line.prototype.reSet = function () {
@@ -445,6 +464,7 @@ Line.prototype.reSet = function () {
 	this.ctrl1 = [];
 	this.ctrl2 = [];
 	this.status = 0;
+	return this;
 }
 
 /**
@@ -472,7 +492,14 @@ function DrawTool (wrap, setting)
 	var _avLine = new Line();
 	var _avLineStack = new LineStack();
 	var _avNode = null;
-
+	var _listenMap = {
+		clickLine: defaultfn,
+		deleteLineBefore: defaultfn,
+		deleteLineAfter: defaultfn,
+		linkLineStart: defaultfn,
+		linkLineBefore: defaultfn,
+		linkLineAfter: defaultfn
+	};
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
 	addClass(_avCvs, [Cls.cvs, Cls.avCvs]);
@@ -522,7 +549,7 @@ function DrawTool (wrap, setting)
 		_avNode = findParent(_wrap, target, Cls.ndJs);
 		_avNode.relX = e.clientX - _avNode.offsetLeft;
 		_avNode.relY = e.clientY - _avNode.offsetTop;
-		if (_avLineStack.length === 0) {
+		if (_avLineStack.length === 0 && _lineStack.length > 0) {
 			_avLineStack = _lineStack.deleteByNodeId(_avNode.nodeid);
 			console.log('提取');
 			reDrawBgCtx();
@@ -564,6 +591,7 @@ function DrawTool (wrap, setting)
 	function anchorClick (e) {
 		var anchor = e.target;
 		if (_avLine.status === 0) {
+			_listenMap.linkLineStart.call(this, _avLine);
 			_avLine.setStart(anchor);
 			reDrawBgCtx();
 		} else if (_avLine.status === 1) {
@@ -616,33 +644,38 @@ function DrawTool (wrap, setting)
 		var sElem = _avLine.startElem; 
 		var startPos = getAnchorPos(sElem);
 		var endPos = getTargetPos(_bgCvs, e);
-		// 画线
-		_avCtx.save();
-		_avCtx.beginPath();
-		_avCtx.moveTo(startPos.x, startPos.y);
-		_avCtx.lineTo(endPos.x, endPos.y);
-		// _avCtx.strokeStyle = _setting.lineColor;
-		_avCtx.stroke();
+		lineTo(_avCtx, _avLine, startPos, endPos);
 	};
 
 	function linkLine (ctx, line) {
 		// 解析线
 		var sElem = line.startElem;
 		var eElem = line.endElem;
-
 		var startPos = getAnchorPos(sElem);
 		var endPos = getAnchorPos(eElem);
+		lineTo(ctx, line, startPos, endPos);
+	};
 
-		// 画线
+	function lineTo (ctx, line, sPos, ePos) {
 		ctx.save();
 		ctx.beginPath();
-		ctx.moveTo(startPos.x, startPos.y);
-		ctx.lineTo(endPos.x, endPos.y);
-		if (ctx == _bgCtx) {
-			ctx.strokeStyle = _setting.lineColor;
-		}
+		ctx.moveTo(sPos.x, sPos.y);
+		ctx.lineTo(ePos.x, ePos.y);
+		ctx.strokeStyle = _setting.lineColor;
 		ctx.stroke();
+		(line.style == 'arrow') && (styleArrow(ctx, sPos, ePos));
+		ctx.restore();
 	};
+
+	function styleArrow (ctx, sPos, ePos) {
+		ctx.translate(ePos.x, ePos.y);
+		ctx.rotate(Math.atan2(ePos.y - sPos.y, ePos.x - sPos.x));
+		ctx.lineTo(-10,3);
+		ctx.lineTo(-10,-3);
+		ctx.lineTo(0,0);
+		ctx.fillStyle = _setting.arrowColor;
+		ctx.fill();
+	}
 
 	function getAnchorPos (elem) {
 		var pos = {};
@@ -672,6 +705,16 @@ function DrawTool (wrap, setting)
 		_nodeStack.push(node);
 		appendAnchors(node);
 		return node;
+	};
+
+	this.listen = function () {
+		if (arguments.length === 1 && isObject(arguments[0])) {
+			_listenMap = mixin(arguments[0], _listenMap);
+		} else if (arguments.length >= 2 && isFunction(arguments[1])) {
+			var type = arguments[0],
+				fn = arguments[1];
+			_listenMap[type] = fn;
+		};
 	};
 
 };
