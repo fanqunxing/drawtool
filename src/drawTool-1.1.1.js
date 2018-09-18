@@ -859,14 +859,14 @@ function DrawTool( dom , setting)
 		{
 			var oLine = _lineStack[i];
 			var allPos = getAllPosByLine( oLine );
-			var isHover = isSelected( 
+			var isHover = isSelected(
 				_ctx, 
-				allPos.start[0], 
-				allPos.start[1], 
+				allPos.start[0],
+				allPos.start[1],
 				oLine.ctrl1&&oLine.ctrl1.length==2?oLine.ctrl1[0]:allPos[1][0],
-				oLine.ctrl1&&oLine.ctrl1.length==2?oLine.ctrl1[1]:allPos[1][1], 
-				oLine.ctrl2&&oLine.ctrl2.length==2?oLine.ctrl2[0]:allPos[2][0], 
-				oLine.ctrl2&&oLine.ctrl2.length==2?oLine.ctrl2[1]:allPos[2][1], 
+				oLine.ctrl1&&oLine.ctrl1.length==2?oLine.ctrl1[1]:allPos[1][1],
+				oLine.ctrl2&&oLine.ctrl2.length==2?oLine.ctrl2[0]:allPos[2][0],
+				oLine.ctrl2&&oLine.ctrl2.length==2?oLine.ctrl2[1]:allPos[2][1],
 				allPos.end[0], 
 				allPos.end[1], 
 				0,

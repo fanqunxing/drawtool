@@ -30,7 +30,7 @@ button, input, select{
 	height: 40px;
 	text-align: center;
 	line-height: 40px;
-	cursor: pointer;
+	/*cursor: pointer;*/
 	border-radius: 50%;
 }
 .in{

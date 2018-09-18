@@ -15,6 +15,7 @@
 .drawTool-content-root .drawTool-node {
 	display: inline-block;
 	position: absolute;
+    cursor: move;
 }
 
 .drawTool-content-root .drawTool-node:hover .drawTool-anchor{

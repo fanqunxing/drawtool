@@ -27,7 +27,7 @@ function addNode(x, y) {
 	drawTool.addNode(option);
 };
 
-/*
+
 drawTool.listen({
 	clickLine: function( line ) {
 		console.log( line );
@@ -46,10 +46,17 @@ drawTool.listen({
 	}
 });
 
-drawTool.listen('clickLine', function(line) {
-	console.log(line);
+// 动态设置线的样式
+var index = 1;
+drawTool.listen('linkLineStart', function(line) {
+	if (index % 2 == 1) {
+		line.setStyle('arrow');
+	} else {
+		line.setStyle('none');
+	}
+	index++;
 });
-
+/*
 init();
 
 function save() {
