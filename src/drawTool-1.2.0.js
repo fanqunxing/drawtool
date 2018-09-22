@@ -608,20 +608,8 @@ function DrawTool (wrap, setting)
 
 
 	function isExistLine () {
-		var isExist = false;
-		do {
-			if (isNotEmptyList(_lineStack)) {
-				isExist = true;
-				break;
-			};
-			if (isNotEmptyList(_avLineStack)) {
-				isExist = true;
-				break;
-			};
-		} while (false);
-		return isExist;
+		return isNotEmptyList(_lineStack) || isNotEmptyList(_avLineStack);
 	};
-
 
 
 	/**
