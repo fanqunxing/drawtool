@@ -149,7 +149,7 @@ function addClass (elem, cls) {
 function removeClass (elem, cls) {
 	if (hasClass(elem, cls)) {
 		var s = ' ';
-		var newCls = s + dom.className.replace(/[\t\r\n]/g, '') + s;
+		var newCls = s + elem.className.replace(/[\t\r\n]/g, '') + s;
 		while (newCls.indexOf(s + cls + s) >= 0) {
 			newCls = newCls.replace(s + cls + s, s);
 		};
@@ -301,8 +301,8 @@ function appendLineMenu (elem) {
 			<i class="' + Cls.menuEditJs + ' ' + Cls.menuEditCss + '"></i>\
 		</span>';
 	elem.appendChild(div);
-	// return hideElem(div);
-	return div;
+	return hideElem(div);
+	// return div;
 };
 
 /**
@@ -554,6 +554,7 @@ function DrawTool (wrap, setting)
 	var _avLineStack = new LineStack();
 	var _avNode = null;
 	var _wrapLineW = 10;
+	var _focusLine = null;
 	var _listenMap = {
 		clickLine: defaultfn,
 		deleteLineBefore: defaultfn,
@@ -563,8 +564,6 @@ function DrawTool (wrap, setting)
 		linkLineAfter: defaultfn
 	};
 	var _menu = appendLineMenu(_wrap);
-	console.log(_menu);
-
 
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
@@ -602,9 +601,18 @@ function DrawTool (wrap, setting)
 
 	Event.delegate(_wrap, Cls.anchorJs, 'click', aopAnchorClick);
 
+	Event.delegate(_wrap, Cls.menuDeleteJs, "click", menuDeleteClick);
+
 	Event.on(_wrap, 'click', lineClick);
 
 	Event.on(_wrap, "mousemove", wrapMousemove);
+
+
+	function menuDeleteClick () {
+		_lineStack.deleteById(_focusLine.lineid);
+		reDrawBgCtx();
+		// reDrawAvCtx();
+	}
 
 
 	/**
@@ -689,7 +697,22 @@ function DrawTool (wrap, setting)
 		var focusLine = getFocusLine(e);
 		if (isDef(focusLine)) {
 			console.log('点击线条');
+			_focusLine = focusLine;
+			var pos = getTargetPos(_wrap,  e);
+			yellMenu(pos);
+		} else {
+			_focusLine = null;
+			hideElem(_menu);
 		}
+	};
+
+	/**
+	 * 召唤操作菜单
+	 */
+	function yellMenu (pos) {
+		showElem(_menu);
+		_menu.style.left = pos.x + "px";
+		_menu.style.top = pos.y + "px";
 	};
 
 	/**
@@ -785,19 +808,20 @@ function DrawTool (wrap, setting)
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
 		var d = _wrapLineW / 2;
+		var red = 10; // 线的缩进距离
 		// 线的倾斜角度
 		var deg = atan((ePos.y - sPos.y) / (ePos.x - sPos.x));
-		var p1x = sPos.x + d * sin(deg);
-		var p1y = sPos.y - d * cos(deg);
+		var p1x = sPos.x + d * sin(deg) + red * cos(deg);
+		var p1y = sPos.y - d * cos(deg) + red * sin(deg);
 
-		var p2x = sPos.x - d * sin(deg);
-		var p2y = sPos.y + d * cos(deg);
+		var p2x = sPos.x - d * sin(deg) + red * cos(deg);
+		var p2y = sPos.y + d * cos(deg) + red * sin(deg);
 
-		var p3x = ePos.x - d * sin(deg);
-		var p3y = ePos.y + d * cos(deg);
+		var p3x = ePos.x - d * sin(deg) - red * cos(deg);
+		var p3y = ePos.y + d * cos(deg) - red * sin(deg);
 
-		var p4x = ePos.x + d * sin(deg);
-		var p4y = ePos.y - d * cos(deg);
+		var p4x = ePos.x + d * sin(deg) - red * cos(deg);
+		var p4y = ePos.y - d * cos(deg) - red * sin(deg);
 		_avCtx.save();
 		_avCtx.beginPath();
 		_avCtx.moveTo(p1x, p1y);
