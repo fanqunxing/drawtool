@@ -607,11 +607,6 @@ function DrawTool (wrap, setting)
 	Event.on(_wrap, "mousemove", wrapMousemove);
 
 
-	function isExistLine () {
-		return isNotEmptyList(_lineStack) || isNotEmptyList(_avLineStack);
-	};
-
-
 	/**
 	 * 激活活跃节点
 	 * 1. 记录活跃节点的信息
@@ -730,6 +725,14 @@ function DrawTool (wrap, setting)
 	 */
 	function changeCursor (style) {
 		_wrap.style.cursor = style;
+	};
+
+
+	/**
+	 * 是否存在线条
+	 */
+	function isExistLine () {
+		return isNotEmptyList(_lineStack) || isNotEmptyList(_avLineStack);
 	};
 
 	/**
