@@ -162,7 +162,7 @@ function parsePos (pos) {
 	var list = [];
 	if (isObject(pos)) {
 		list[0] = pos.x;
-		list[1] = pox.y;
+		list[1] = pos.y;
 	}
 	return list;
 };
@@ -783,20 +783,27 @@ function DrawTool (wrap, setting)
 	function menuEditClick (e) {
 		var ctrl1 = _ctrlMap('ctrl1');
 		var ctrl2 = _ctrlMap('ctrl2');
-
 		var sPos = getAnchorPos(_focusLine.startElem);
 		var ePos = getAnchorPos(_focusLine.endElem);
-
 		var posMap = divide(sPos, ePos, 3);
-
-		var c1halfW = ctrl1.offsetWidth / 2;
-		var c1halfH = ctrl1.offsetHeight / 2;
-
-		ctrl1.style.left = posMap('d1').x - c1halfW + 'px';
-		ctrl1.style.top = posMap('d1').y - c1halfH + 'px';
-		ctrl2.style.left = posMap('d2').x - c1halfW + 'px';
-		ctrl2.style.top = posMap('d2').y - c1halfH + 'px';
-
+		var chalfW = ctrl1.offsetWidth / 2;
+		var chalfH = ctrl1.offsetHeight / 2;
+		if (isNotEmptyList(_focusLine.ctrl1)) {
+			ctrl1.style.left = _focusLine.ctrl1[0] - chalfW  + 'px';
+			ctrl1.style.top = _focusLine.ctrl1[1] - chalfH  + 'px';
+		} else {
+			ctrl1.style.left = posMap('d1').x - chalfW + 'px';
+			ctrl1.style.top = posMap('d1').y - chalfH + 'px';
+			_focusLine.ctrl1 = parsePos(posMap('d1'));
+		};
+		if (isNotEmptyList(_focusLine.ctrl2)) {
+			ctrl2.style.left = _focusLine.ctrl2[0] - chalfW  + 'px';
+			ctrl2.style.top = _focusLine.ctrl2[1] - chalfH  + 'px';
+		} else {
+			ctrl2.style.left = posMap('d2').x - chalfW + 'px';
+			ctrl2.style.top = posMap('d2').y - chalfH + 'px';
+			_focusLine.ctrl2 = parsePos(posMap('d2'));
+		}
 	};
 
 
@@ -883,7 +890,6 @@ function DrawTool (wrap, setting)
 		if (isDef(focusLine)) {
 			console.log('点击线条');
 			_focusLine = focusLine;
-			// _menuLine = focusLine;
 			var pos = getTargetPos(_wrap,  e);
 			yellMenu(focusLine, pos);
 		} else {
@@ -901,8 +907,6 @@ function DrawTool (wrap, setting)
 		showElem(menuBtn);
 		switch (line.type) {
 			case 'bezier':
-				// var menuDelete = _menu.getElementsByClassName(Cls.menuDeleteCss);
-				// hideElem(menuDelete);
 				break;
 			case 'straight':
 				var menuEdit = _menu.getElementsByClassName(Cls.menuEditCss);
@@ -910,8 +914,8 @@ function DrawTool (wrap, setting)
 				break;
 		};
 		showElem(_menu);
-		_menu.style.left = pos.x + "px";
-		_menu.style.top = pos.y + "px";
+		_menu.style.left = pos.x + 'px';
+		_menu.style.top = pos.y + 'px';
 	};
 
 	/**
@@ -948,7 +952,6 @@ function DrawTool (wrap, setting)
 	function changeCursor (style) {
 		_wrap.style.cursor = style;
 	};
-
 
 	/**
 	 * 是否存在线条
@@ -1152,17 +1155,13 @@ function DrawTool (wrap, setting)
 	function isPointInPathStraight (sPos, ePos, pos) {
 		var d = _wrapLineW / 2;
 		var red = 10;
-		// 线的倾斜角度
 		var deg = atan((ePos.y - sPos.y) / (ePos.x - sPos.x));
 		var p1x = sPos.x + d * sin(deg) + red * cos(deg);
 		var p1y = sPos.y - d * cos(deg) + red * sin(deg);
-
 		var p2x = sPos.x - d * sin(deg) + red * cos(deg);
 		var p2y = sPos.y + d * cos(deg) + red * sin(deg);
-
 		var p3x = ePos.x - d * sin(deg) - red * cos(deg);
 		var p3y = ePos.y + d * cos(deg) - red * sin(deg);
-
 		var p4x = ePos.x + d * sin(deg) - red * cos(deg);
 		var p4y = ePos.y - d * cos(deg) - red * sin(deg);
 		_avCtx.save();
@@ -1190,12 +1189,12 @@ function DrawTool (wrap, setting)
 	};
 
 	function pushDrawBgCtx (line) {
-		linkLine (_bgCtx, line);
+		linkLine(_bgCtx, line);
 	};
 
 	function linkAllBgLink () {
 		_lineStack.forEach(function (line) {
-			linkLine (_bgCtx, line);
+			linkLine(_bgCtx, line);
 		});
 	};
 
@@ -1220,11 +1219,11 @@ function DrawTool (wrap, setting)
 			case 'bezier':
 				var bezierMap = getBezierPos(line, sPos, ePos);
 				bezierLineTo(
-					ctx, 
-					line, 
-					sPos, 
-					bezierMap('d1Pos'), 
-					bezierMap('d2Pos'), 
+					ctx,
+					line,
+					sPos,
+					bezierMap('d1Pos'),
+					bezierMap('d2Pos'),
 					ePos, 
 					0
 				);
@@ -1310,8 +1309,6 @@ function DrawTool (wrap, setting)
 		return pos;
 	};
 
-
-
 	this.addNode = function (conf) {
 		var node = document.createElement('div');
 		addClass(node, [Cls.ndCss, Cls.ndJs]);
@@ -1340,10 +1337,7 @@ function DrawTool (wrap, setting)
 			_listenMap[type] = fn;
 		};
 	};
-
 };
-
-
 
 return DrawTool;
 
