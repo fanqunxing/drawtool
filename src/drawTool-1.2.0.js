@@ -114,6 +114,17 @@ function aop (option) {
 	};
 };
 
+function makeMap (str, expectsLowerCase) {
+  var map = Object.create(null);
+  var list = str.split(',');
+  for (var i = 0; i < list.length; i++) {
+    map[list[i]] = true;
+  }
+  return expectsLowerCase
+    ? function (val) { return map[val.toLowerCase()]; }
+    : function (val) { return map[val]; }
+};
+
 function error (msg) {
 	throw new Error('drawTool.js error: ' + msg);
 };
@@ -496,6 +507,8 @@ lineproto.clear = function () {
 /*
  * 线
  */
+var isLineType = makeMap('broken,bezier,straight', true);
+var isLineStyle = makeMap('arrow,none', true);
 function Line (type, style) {
 	this.lineid = null;
 	this.startNodeid = null;
@@ -506,20 +519,23 @@ function Line (type, style) {
 	this.endElem = null;
 	this.ctrl1 = [];
 	this.ctrl2 = [];
-	this.type = type || 'bezier';
+	this.type = isLineType(type) || 'bezier';
 	// 0 init 1 start 2 end
 	this.status = 0;
-	this.style = style || 'none';
+	this.style = isLineStyle(style) || 'none';
 };
 
 Line.prototype.setType = function (type) {
-	// broken bezier straight
-	this.type = type;
+	if (isLineType(type)) {
+		this.type = type;
+	};
 	return this;
 };
 
 Line.prototype.setStyle = function (style) {
-	this.style = style;
+	if (isLineStyle(style)) {
+		this.style = style;
+	};
 	return this;
 };
 
@@ -589,6 +605,7 @@ function DrawTool (wrap, setting)
 		linkLineAfter: defaultfn
 	};
 	var _menu = appendLineMenu(_wrap);
+	// var _ctrlMap = addBezierControl(_wrap);
 
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
