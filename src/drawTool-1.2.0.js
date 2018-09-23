@@ -735,7 +735,6 @@ function DrawTool (wrap, setting)
 	 * 召唤操作菜单
 	 */
 	function yellMenu (line, pos) {
-		// console.log(line);
 		var menuBtn = _menu.getElementsByClassName(Cls.menuBtnJs);
 		showElem(menuBtn);
 		switch (line.type) {
