@@ -28,6 +28,14 @@ function atan (n) {
 	return Math.atan(n);
 }
 
+function sqrt (n) {
+	return Math.sqrt(n);
+};
+
+function pow (n, m) {
+	return Math.pow(n, m);
+};
+
 function isUndef (v) {
   return v === undefined || v === null;
 };
@@ -108,9 +116,9 @@ function aop (option) {
 		after:defaultfn
 	});
 	return function () {
-		option.before.apply(option.before, arguments);
+		option.before.apply(option.func, arguments);
 		option.fun.apply(option.func, arguments);
-		option.after.apply(option.after, arguments);
+		option.after.apply(option.func, arguments);
 	};
 };
 
@@ -121,8 +129,42 @@ function makeMap (str, expectsLowerCase) {
     map[list[i]] = true;
   }
   return expectsLowerCase
-    ? function (val) { return map[val.toLowerCase()]; }
-    : function (val) { return map[val]; }
+    ? function (val) {
+    	val = val || '';
+    	return map[val.toLowerCase()]; 
+    }
+    : function (val) { 
+    	return map[val]; 
+    }
+};
+
+function divide (sPos, ePos , num) {
+	var divideMap = {};
+	var δx = (ePos.x - sPos.x) / num;
+	var δy = (ePos.y - sPos.y) / num;
+	for (var i = 0; i <= num; i++) {
+		var x = sPos.x + i * δx;
+		var y = sPos.y + i * δy;
+		divideMap['d' + i] = {x: x, y: y};
+	};
+	return function (val) {return divideMap[val]};
+};
+
+function toPos (list) {
+	var pos = {};
+	if (isArray(list)) {
+		pos = {x: list[0], y: list[1]};
+	};
+	return pos;
+};
+
+function parsePos (pos) {
+	var list = [];
+	if (isObject(pos)) {
+		list[0] = pos.x;
+		list[1] = pox.y;
+	}
+	return list;
 };
 
 function error (msg) {
@@ -341,6 +383,23 @@ function appendLineMenu (elem) {
 	// return div;
 };
 
+function appendBezierCtrls (elem) {
+	var ul = document.createElement( "ul" );
+	ul.className = Cls.controller;
+	var li1 = document.createElement( "li" );
+	li1.className = Cls.ctrlli + ' ' + Cls.ctrlJs;
+	li1.ctrlFlag = 1;
+	var li2 = document.createElement( "li" );
+	li2.className = Cls.ctrlli + ' ' + Cls.ctrlJs;
+	li2.ctrlFlag = 2;
+	ul.appendChild( li1 );
+	ul.appendChild( li2 );
+	elem.appendChild( ul );
+	// hideDom( ul );
+	var map = { ctrl1: li1, ctrl2: li2, ctrl: ul };
+	return function (val) { return map[val]; };
+}
+
 /**
  * 节点栈
  */
@@ -457,12 +516,15 @@ lineproto.addAll = function (lineStack) {
 
 
 lineproto.deleteById = function (lineid) {
+	var lineStack = new LineStack();
 	for (var i = 0; i < this.length; i++) {
 		if (this[i].lineid == lineid) {
+			lineStack.push(this[i]);
 			Array.prototype.splice.call( this, i, 1 );
 			break;
 		};
 	};
+	return lineStack;
 };
 
 lineproto.deleteByNodeId = function (nodeid) {
@@ -605,7 +667,9 @@ function DrawTool (wrap, setting)
 		linkLineAfter: defaultfn
 	};
 	var _menu = appendLineMenu(_wrap);
-	// var _ctrlMap = addBezierControl(_wrap);
+	var _ctrlMap = appendBezierCtrls(_wrap);
+	var _avCtrl = null;
+	var _menuLine = null;
 
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
@@ -633,7 +697,21 @@ function DrawTool (wrap, setting)
 	var aopMouseup = aop({
 		fun: mouseup,
 		after: function () {
-			Event.off( _wrap, 'mousemove', nodeMousemove);
+			Event.off(_wrap, 'mousemove', nodeMousemove);
+		}
+	});
+
+	var aopCtrlMouseup = aop({
+		fun: ctrlMouseup,
+		after: function () {
+			Event.off(_wrap, "mousemove", ctrlMousemove);
+		}
+	});
+
+	var aopCtrlMousedown = aop({
+		fun: ctrlMousedown,
+		after: function () {
+			Event.on(_wrap, "mousemove", ctrlMousemove);
 		}
 	});
 
@@ -643,18 +721,83 @@ function DrawTool (wrap, setting)
 
 	Event.delegate(_wrap, Cls.anchorJs, 'click', aopAnchorClick);
 
-	Event.delegate(_wrap, Cls.menuDeleteJs, "click", menuDeleteClick);
+	Event.delegate(_wrap, Cls.menuDeleteJs, 'click', menuDeleteClick);
+
+	Event.delegate(_wrap, Cls.menuEditJs, 'click', menuEditClick);
+
+	Event.delegate(_wrap, Cls.ctrlJs, "mousedown", aopCtrlMousedown);
+
+	Event.delegate(_wrap, Cls.ctrlJs, "mouseup", aopCtrlMouseup);
 
 	Event.on(_wrap, 'click', lineClick);
 
 	Event.on(_wrap, "mousemove", wrapMousemove);
 
+	function ctrlMousedown (e) {
+		_avCtrl = e.target;
+		_avCtrl.relX = e.clientX - _avCtrl.offsetLeft;
+		_avCtrl.relY = e.clientY - _avCtrl.offsetTop;
+		if (isNotEmptyList(_lineStack)) {
+			_avLineStack = _lineStack.deleteById(_focusLine.lineid);
+			reDrawBgCtx();
+			reDrawAvCtx();
+			console.log('提取');
+		}
+	};
+
+	/**
+	 * 控制点弹起
+	 */
+	function ctrlMouseup () {
+		if (isNotEmptyList(_avLineStack)) {
+			_lineStack.addAll(_avLineStack);
+			_avLineStack.clear();
+			reDrawBgCtx();
+			reDrawAvCtx();
+			console.log('投放');
+		};
+	}
+
+	function ctrlMousemove (e) {
+		if (isDOMElement(_avCtrl)) {
+			var x = e.clientX - _avCtrl.relX;
+			var y = e.clientY - _avCtrl.relY;
+			_avCtrl.style.left = x  + 'px';
+			_avCtrl.style.top  = y  + 'px';
+			var cx = x + _avCtrl.offsetWidth/2;
+			var cy = y + _avCtrl.offsetHeight/2;
+		    _focusLine['ctrl'+_avCtrl.ctrlFlag] = [cx, cy];
+		    // console.log(_focusLine);
+		    // 绘制活跃层
+		    console.log(_avLineStack);
+		    reDrawAvCtx();
+		}
+	}
 
 	function menuDeleteClick () {
 		_lineStack.deleteById(_focusLine.lineid);
 		reDrawBgCtx();
 		// reDrawAvCtx();
-	}
+	};
+
+	function menuEditClick (e) {
+		var ctrl1 = _ctrlMap('ctrl1');
+		var ctrl2 = _ctrlMap('ctrl2');
+
+		var sPos = getAnchorPos(_focusLine.startElem);
+		var ePos = getAnchorPos(_focusLine.endElem);
+
+		var posMap = divide(sPos, ePos, 3);
+
+		var c1halfW = ctrl1.offsetWidth / 2;
+		var c1halfH = ctrl1.offsetHeight / 2;
+
+		ctrl1.style.left = posMap('d1').x - c1halfW + 'px';
+		ctrl1.style.top = posMap('d1').y - c1halfH + 'px';
+		ctrl2.style.left = posMap('d2').x - c1halfW + 'px';
+		ctrl2.style.top = posMap('d2').y - c1halfH + 'px';
+
+	};
 
 
 	/**
@@ -740,10 +883,12 @@ function DrawTool (wrap, setting)
 		if (isDef(focusLine)) {
 			console.log('点击线条');
 			_focusLine = focusLine;
+			// _menuLine = focusLine;
 			var pos = getTargetPos(_wrap,  e);
 			yellMenu(focusLine, pos);
 		} else {
-			_focusLine = null;
+			console.log('点击非线条');
+			// _focusLine = null;
 			hideElem(_menu);
 		}
 	};
@@ -762,7 +907,8 @@ function DrawTool (wrap, setting)
 			case 'straight':
 				var menuEdit = _menu.getElementsByClassName(Cls.menuEditCss);
 				hideElem(menuEdit);
-		}
+				break;
+		};
 		showElem(_menu);
 		_menu.style.left = pos.x + "px";
 		_menu.style.top = pos.y + "px";
@@ -912,7 +1058,7 @@ function DrawTool (wrap, setting)
 
 	function linkAllAvLink () {
 		_avLineStack.forEach(function (line) {
-			linkLine (_avCtx, line);
+			linkLine(_avCtx, line);
 		});
 	};
 
@@ -920,24 +1066,85 @@ function DrawTool (wrap, setting)
 		// console.log('linkLineProcess');
 		var sPos = getAnchorPos(_avLine.startElem);
 		var ePos = getTargetPos(_bgCvs, e);
-		lineTo(_avCtx, _avLine, sPos, ePos);
+		straightLineTo(_avCtx, _avLine, sPos, ePos);
 	};
 
 	function linkLine (ctx, line) {
 		// 解析线
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
-		lineTo(ctx, line, sPos, ePos);
+		switch (line.type) {
+			case 'bezier':
+				console.log('bezier');
+				var posMap = divide(sPos, ePos, 3);
+				var d1Pos = toPos(line.ctrl1);
+				var d2Pos = toPos(line.ctrl2);
+				if (!isNotEmptyList(line.ctrl1)) {
+					d1Pos = posMap('d1');
+				};
+				if (!isNotEmptyList(line.ctrl2)) {
+					d2Pos = posMap('d2');
+				}
+				bezierLineTo(ctx, line, sPos, d1Pos, d2Pos, ePos, 0);
+				break;
+			case 'straight':
+				straightLineTo(ctx, line, sPos, ePos);
+				break;
+		};
 	};
 
-	function lineTo (ctx, line, sPos, ePos) {
+	function bezierLineTo (ctx, line, sPos, d1Pos, d2Pos, ePos, nodeRad) {
+		var isArrow = (_setting.lineStyle === 'arrow');
+		var l = sqrt(pow((d2Pos.x - ePos.x), 2) + pow((d2Pos.y - ePos.y), 2));
+		var k = (nodeRad + 10) / l;
+		var innerK = nodeRad / l;
+		var arrowEnd = {};
+		arrowEnd.x = ePos.x + innerK * (d2Pos.x - ePos.x);
+	    arrowEnd.y = ePos.y + innerK * (d2Pos.y - ePos.y);
+
+	    var bezierEnd = {};
+	    bezierEnd.x = isArrow? ePos.x + k * (d2Pos.x - ePos.x) : ePos.x;
+	    bezierEnd.y = isArrow? ePos.y + k * (d2Pos.y - ePos.y) : ePos.y;
+
+	    ctx.save();
+	    ctx.beginPath();
+	    if (ctx !== _avCtx) {
+			ctx.strokeStyle = _setting.lineColor;
+		}
+	    // ctx.strokeStyle = _setting.lineColor;
+	    ctx.moveTo(sPos.x, sPos.y);
+	    ctx.bezierCurveTo(d1Pos.x, d1Pos.y, d2Pos.x, d2Pos.y, bezierEnd.x, bezierEnd.y);
+	    ctx.stroke();
+
+	    ctx.beginPath();
+	    ctx.arc(ePos.x, ePos.y, nodeRad, 0, 2 * Math.PI);
+	    ctx.stroke();
+
+	    isArrow && (styleArrow(ctx, d2Pos, arrowEnd, bezierEnd));
+	    ctx.restore();
+	};
+
+
+	function bezierStyleArrow (ctx, d2Pos, arrowEnd, bezierEnd) {
+		ctx.beginPath(); 
+	    ctx.translate(arrowEnd.x, arrowEnd,y);
+	    ctx.rotate(Math.atan2(bezierEnd.y - d2Pos.y, bezierEnd.x - d2Pos.x));
+	    ctx.moveTo(0, 0);
+	    ctx.lineTo(-10, 3);
+	    ctx.lineTo(-10, -3);
+	    ctx.lineTo(0, 0);
+	    ctx.stroke();
+	    ctx.fill();
+	};
+
+	function straightLineTo (ctx, line, sPos, ePos) {
+		if (ctx !== _avCtx) {
+			ctx.strokeStyle = _setting.lineColor;
+		}
 		ctx.save();
 		ctx.beginPath();
 		ctx.moveTo(sPos.x, sPos.y);
 		ctx.lineTo(ePos.x, ePos.y);
-		if (ctx !== _avCtx) {
-			ctx.strokeStyle = _setting.lineColor;
-		}
 		ctx.stroke();
 		(line.style == 'arrow') && (styleArrow(ctx, sPos, ePos));
 		ctx.restore();
