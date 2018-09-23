@@ -62,7 +62,7 @@ function isArray (it) {
 
 function toArray (it) {
 	return Array.prototype.slice.call(it);
-}
+};
 
 function isObject (obj) {
 	return obj !== null && typeof obj === 'object';
@@ -106,8 +106,7 @@ function once (fn) {
       		fn.apply(this, arguments);
     	}
   	}
-}
-
+};
 
 function aop (option) {
 	option = mixin(option, {
@@ -243,7 +242,7 @@ function hideElem (elem) {
 		toArray(elem).forEach(function (e) {
 			hideElem(e);
 		});
-	}
+	};
 	return elem;
 };
 
@@ -380,22 +379,21 @@ function appendLineMenu (elem) {
 		</span>';
 	elem.appendChild(div);
 	return hideElem(div);
-	// return div;
 };
 
 function appendBezierCtrls (elem) {
-	var ul = document.createElement( "ul" );
+	var ul = document.createElement('ul');
 	ul.className = Cls.controller;
-	var li1 = document.createElement( "li" );
+	var li1 = document.createElement('li');
 	li1.className = Cls.ctrlli + ' ' + Cls.ctrlJs;
 	li1.ctrlFlag = 1;
-	var li2 = document.createElement( "li" );
+	var li2 = document.createElement('li');
 	li2.className = Cls.ctrlli + ' ' + Cls.ctrlJs;
 	li2.ctrlFlag = 2;
-	ul.appendChild( li1 );
-	ul.appendChild( li2 );
-	elem.appendChild( ul );
-	// hideDom( ul );
+	ul.appendChild(li1);
+	ul.appendChild(li2);
+	elem.appendChild(ul);
+	hideElem(ul);
 	var map = { ctrl1: li1, ctrl2: li2, ctrl: ul };
 	return function (val) { return map[val]; };
 }
@@ -472,8 +470,6 @@ nodeproto.toArray = function() {
 	return arr;
 };
 
-
-
 /**
  * 线栈
  */
@@ -499,8 +495,8 @@ lineproto.push = function (line) {
 	for (var i = 0; i < this.length; i++) {
 		if (this[i].lineid > maxId) {
 			maxId = this[i].lineid;
-		}
-	}
+		};
+	};
 	line.lineid = line.lineid || (maxId + 1);
 	Array.prototype.push.call(this, line);
 	return line;
@@ -512,8 +508,7 @@ lineproto.addAll = function (lineStack) {
 		self.push(line);
 	});
 	return self;
-}
-
+};
 
 lineproto.deleteById = function (lineid) {
 	var lineStack = new LineStack();
@@ -535,7 +530,7 @@ lineproto.deleteByNodeId = function (nodeid) {
 			lineStack.push(this[i]);
 			Array.prototype.splice.call(this, i, 1);
 			i--;
-		}
+		};
 	};
 	return lineStack;
 };
@@ -556,7 +551,7 @@ lineproto.toArray = function () {
 	var arr = []; 
 	for (var i = 0; i < this.length; i++) {
 		arr.push(this[i]);
-	}
+	};
 	return arr;
 };
 
@@ -615,7 +610,7 @@ Line.prototype.setEnd = function (anchor) {
 	this.endElem = anchor;
 	this.status = 2;
 	return this;
-}
+};
 
 Line.prototype.reSet = function () {
 	this.startNodeid = null;
@@ -628,7 +623,7 @@ Line.prototype.reSet = function () {
 	this.ctrl2 = [];
 	this.status = 0;
 	return this;
-}
+};
 
 /**
  * DrawTool class
@@ -670,6 +665,7 @@ function DrawTool (wrap, setting)
 	var _ctrlMap = appendBezierCtrls(_wrap);
 	var _avCtrl = null;
 	var _menuLine = null;
+	var _isExtract = false;
 
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
@@ -737,26 +733,28 @@ function DrawTool (wrap, setting)
 		_avCtrl = e.target;
 		_avCtrl.relX = e.clientX - _avCtrl.offsetLeft;
 		_avCtrl.relY = e.clientY - _avCtrl.offsetTop;
-		if (isNotEmptyList(_lineStack)) {
+		if (isNotEmptyList(_lineStack) && isFalse(_isExtract)) {
 			_avLineStack = _lineStack.deleteById(_focusLine.lineid);
 			reDrawBgCtx();
 			reDrawAvCtx();
 			console.log('提取');
-		}
+			_isExtract = true;
+		};
 	};
 
 	/**
 	 * 控制点弹起
 	 */
 	function ctrlMouseup () {
-		if (isNotEmptyList(_avLineStack)) {
+		if (isNotEmptyList(_avLineStack) && isTrue(_isExtract)) {
 			_lineStack.addAll(_avLineStack);
 			_avLineStack.clear();
 			reDrawBgCtx();
 			reDrawAvCtx();
 			console.log('投放');
+			_isExtract = false;
 		};
-	}
+	};
 
 	function ctrlMousemove (e) {
 		if (isDOMElement(_avCtrl)) {
@@ -767,12 +765,11 @@ function DrawTool (wrap, setting)
 			var cx = x + _avCtrl.offsetWidth/2;
 			var cy = y + _avCtrl.offsetHeight/2;
 		    _focusLine['ctrl'+_avCtrl.ctrlFlag] = [cx, cy];
-		    // console.log(_focusLine);
 		    // 绘制活跃层
 		    console.log(_avLineStack);
 		    reDrawAvCtx();
-		}
-	}
+		};
+	};
 
 	function menuDeleteClick () {
 		_lineStack.deleteById(_focusLine.lineid);
@@ -781,6 +778,7 @@ function DrawTool (wrap, setting)
 	};
 
 	function menuEditClick (e) {
+		showElem(_ctrlMap('ctrl'));
 		var ctrl1 = _ctrlMap('ctrl1');
 		var ctrl2 = _ctrlMap('ctrl2');
 		var sPos = getAnchorPos(_focusLine.startElem);
@@ -803,7 +801,7 @@ function DrawTool (wrap, setting)
 			ctrl2.style.left = posMap('d2').x - chalfW + 'px';
 			ctrl2.style.top = posMap('d2').y - chalfH + 'px';
 			_focusLine.ctrl2 = parsePos(posMap('d2'));
-		}
+		};
 	};
 
 
@@ -819,12 +817,13 @@ function DrawTool (wrap, setting)
 		_avNode = findParent(_wrap, target, Cls.ndJs);
 		_avNode.relX = e.clientX - _avNode.offsetLeft;
 		_avNode.relY = e.clientY - _avNode.offsetTop;
-		if (isNotEmptyList(_lineStack)) {
+		if (isNotEmptyList(_lineStack) && isFalse(_isExtract)) {
 			_avLineStack = _lineStack.deleteByNodeId(_avNode.nodeid);
 			reDrawBgCtx();
 			reDrawAvCtx();
+			_isExtract = true;
 			console.log('提取');
-		}
+		};
 	};
 
 	/**
@@ -838,7 +837,7 @@ function DrawTool (wrap, setting)
 			_avNode.style.left = e.clientX - _avNode.relX + 'px';
 			_avNode.style.top  = e.clientY - _avNode.relY + 'px';
 			reDrawAvCtx();
-		}
+		};
 	};
 
 	/**
@@ -847,14 +846,15 @@ function DrawTool (wrap, setting)
 	 */
 	function mouseup () {
 		_avNode = null;
-		if (isNotEmptyList(_avLineStack)) {
+		if (isNotEmptyList(_avLineStack) && isTrue(_isExtract)) {
 			_lineStack.addAll(_avLineStack);
 			_avLineStack.clear();
 			reDrawBgCtx();
 			reDrawAvCtx();
+			_isExtract = false;
 			console.log('投放');
-		}
-	}
+		};
+	};
 
 	/**
 	 * 开始连线时，触发一次固定层刷新
@@ -896,7 +896,8 @@ function DrawTool (wrap, setting)
 			console.log('点击非线条');
 			// _focusLine = null;
 			hideElem(_menu);
-		}
+			//hideElem(_ctrlMap('ctrl'));
+		};
 	};
 
 	/**
@@ -929,6 +930,13 @@ function DrawTool (wrap, setting)
 		};
 		return resultLine;
 	};
+	
+	
+	function drawFocusLine () {
+		if (isDef(_focusLine)) {
+			drawWrapLine(_focusLine);
+		};
+	};
 
 	/**
 	 * hover 画布
@@ -944,6 +952,7 @@ function DrawTool (wrap, setting)
 			changeCursor('default');
 			clearCanvas(_avCtx, _avCvs);
 		};
+		drawFocusLine(); // 选中的线条
 	};
 
 	/**
@@ -1186,6 +1195,7 @@ function DrawTool (wrap, setting)
 			linkLineProcess();
 		}
 		linkAllAvLink();
+		drawFocusLine();
 	};
 
 	function pushDrawBgCtx (line) {
@@ -1251,7 +1261,7 @@ function DrawTool (wrap, setting)
 	    ctx.beginPath();
 	    if (ctx !== _avCtx) {
 			ctx.strokeStyle = _setting.lineColor;
-		}
+		};
 	    ctx.moveTo(sPos.x, sPos.y);
 	    ctx.bezierCurveTo(d1Pos.x, d1Pos.y, d2Pos.x, d2Pos.y, bezierEnd.x, bezierEnd.y);
 	    ctx.stroke();
@@ -1280,7 +1290,7 @@ function DrawTool (wrap, setting)
 	function straightLineTo (ctx, line, sPos, ePos) {
 		if (ctx !== _avCtx) {
 			ctx.strokeStyle = _setting.lineColor;
-		}
+		};
 		ctx.save();
 		ctx.beginPath();
 		ctx.moveTo(sPos.x, sPos.y);
@@ -1298,7 +1308,7 @@ function DrawTool (wrap, setting)
 		ctx.lineTo(0, 0);
 		ctx.fillStyle = _setting.arrowColor;
 		ctx.fill();
-	}
+	};
 
 	function getAnchorPos (elem) {
 		var pos = {};
@@ -1321,7 +1331,7 @@ function DrawTool (wrap, setting)
 
 		var innerNode = node.children[0];
 		addClass(innerNode, Cls.inNdJs);
-
+		
 		_wrap.appendChild(node);
 		_nodeStack.push(node);
 		appendAnchors(node);
