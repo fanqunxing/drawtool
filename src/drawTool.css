@@ -59,15 +59,15 @@
     background-size: 65%;
     background-repeat: no-repeat;
 }
-.drawTool-operate-delete {
+.drawTool-operate-delete i{
     background-image: url(img/delete.png);
 }
-.drawTool-operate-edit {
+.drawTool-operate-edit i{
     background-image: url(img/setting.png);
 }
 
 .drawTool-show{
-	display: block;
+	display: inline-block;
 	z-index: 999999;
 }
 .drawTool-hide{

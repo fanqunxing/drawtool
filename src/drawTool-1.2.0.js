@@ -52,6 +52,10 @@ function isArray (it) {
     return ostring.call(it) === '[object Array]';
 };
 
+function toArray (it) {
+	return Array.prototype.slice.call(it);
+}
+
 function isObject (obj) {
 	return obj !== null && typeof obj === 'object';
 };
@@ -96,20 +100,20 @@ function once (fn) {
   	}
 }
 
-function aop (setting) {
-	setting = mixin(setting, {
+
+function aop (option) {
+	option = mixin(option, {
 		before: defaultfn,
 		fun: defaultfn,
 		after:defaultfn
 	});
 	return function () {
-		setting.before.apply(setting.before, arguments);
-		setting.fun.apply(setting.func, arguments);
-		setting.after.apply(setting.after, arguments);
+		option.before.apply(option.before, arguments);
+		option.fun.apply(option.func, arguments);
+		option.after.apply(option.after, arguments);
 	};
 };
 
-// dom func
 function error (msg) {
 	throw new Error('drawTool.js error: ' + msg);
 };
@@ -159,14 +163,34 @@ function removeClass (elem, cls) {
 };
 
 function showElem (elem) {
-	addClass(elem, Cls.showCss);
-	removeClass(elem, Cls.hideCss);
+	if (isDOMElement(elem)) {
+		if (!hasClass(elem, Cls.showCss)) {
+			addClass(elem, Cls.showCss);
+		};
+		if (hasClass(elem, Cls.hideCss)) {
+			removeClass(elem, Cls.hideCss);
+		}
+	} else {
+		toArray(elem).forEach(function (e) {
+			showElem(e);
+		});
+	}
 	return elem;
 };
 
 function hideElem (elem) {
-	addClass(elem, Cls.hideCss);
-	removeClass(elem, Cls.showCss);
+	if (isDOMElement(elem)) {
+		if (!hasClass(elem, Cls.hideCss)) {
+			addClass(elem, Cls.hideCss);
+		};
+		if (hasClass(elem, Cls.showCss)) {
+			removeClass(elem, Cls.showCss);
+		}
+	} else {
+		toArray(elem).forEach(function (e) {
+			hideElem(e);
+		});
+	}
 	return elem;
 };
 
@@ -261,6 +285,7 @@ var Cls = {
 	anchorJs: 'js-drawTool-anchor',
 	menuCss: 'drawTool-operate',
 	menuBtnCss: 'drawTool-operate-btn',
+	menuBtnJs: 'js-drawTool-operate-btn',
 	menuDeleteCss: 'drawTool-operate-delete',
 	menuDeleteJs: 'js-drawTool-operate-delete',
 	menuEditJs: 'js-drawTool-operate-edit',
@@ -294,11 +319,11 @@ function appendLineMenu (elem) {
 	var div = document.createElement('div');
 	div.className = Cls.menuCss;
 	div.innerHTML = '\
-		<span class="' + Cls.menuBtnCss + '">\
-			<i class="' + Cls.menuDeleteJs + ' ' + Cls.menuDeleteCss + '"></i>\
+		<span class="' + Cls.menuBtnCss + ' ' + Cls.menuDeleteCss + ' ' + Cls.menuBtnJs + '">\
+			<i class="' + Cls.menuDeleteJs + '"></i>\
 		</span>\
-		<span class="' + Cls.menuBtnCss + '">\
-			<i class="' + Cls.menuEditJs + ' ' + Cls.menuEditCss + '"></i>\
+		<span class="' + Cls.menuBtnCss + ' ' + Cls.menuEditCss + ' ' +  Cls.menuBtnJs + '">\
+			<i class="' + Cls.menuEditJs + '"></i>\
 		</span>';
 	elem.appendChild(div);
 	return hideElem(div);
@@ -488,7 +513,7 @@ function Line (type, style) {
 };
 
 Line.prototype.setType = function (type) {
-	// broken bezier
+	// broken bezier straight
 	this.type = type;
 	return this;
 };
@@ -699,7 +724,7 @@ function DrawTool (wrap, setting)
 			console.log('点击线条');
 			_focusLine = focusLine;
 			var pos = getTargetPos(_wrap,  e);
-			yellMenu(pos);
+			yellMenu(focusLine, pos);
 		} else {
 			_focusLine = null;
 			hideElem(_menu);
@@ -709,7 +734,19 @@ function DrawTool (wrap, setting)
 	/**
 	 * 召唤操作菜单
 	 */
-	function yellMenu (pos) {
+	function yellMenu (line, pos) {
+		// console.log(line);
+		var menuBtn = _menu.getElementsByClassName(Cls.menuBtnJs);
+		showElem(menuBtn);
+		switch (line.type) {
+			case 'bezier':
+				// var menuDelete = _menu.getElementsByClassName(Cls.menuDeleteCss);
+				// hideElem(menuDelete);
+				break;
+			case 'straight':
+				var menuEdit = _menu.getElementsByClassName(Cls.menuEditCss);
+				hideElem(menuEdit);
+		}
 		showElem(_menu);
 		_menu.style.left = pos.x + "px";
 		_menu.style.top = pos.y + "px";
@@ -865,18 +902,15 @@ function DrawTool (wrap, setting)
 
 	function linkLineProcess (e) {
 		// console.log('linkLineProcess');
-		var sElem = _avLine.startElem; 
-		var sPos = getAnchorPos(sElem);
+		var sPos = getAnchorPos(_avLine.startElem);
 		var ePos = getTargetPos(_bgCvs, e);
 		lineTo(_avCtx, _avLine, sPos, ePos);
 	};
 
 	function linkLine (ctx, line) {
 		// 解析线
-		var sElem = line.startElem;
-		var eElem = line.endElem;
-		var sPos = getAnchorPos(sElem);
-		var ePos = getAnchorPos(eElem);
+		var sPos = getAnchorPos(line.startElem);
+		var ePos = getAnchorPos(line.endElem);
 		lineTo(ctx, line, sPos, ePos);
 	};
 
