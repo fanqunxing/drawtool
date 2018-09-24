@@ -23,7 +23,7 @@
 }
 .drawTool-anchor{
 	display: inline-block;
-    visibility: hidden;
+    /*visibility: hidden;*/
     position: absolute;
     width: 10px;
     height: 10px;
@@ -72,6 +72,12 @@
 }
 .drawTool-hide{
 	display: none;
+}
+.drawTool-visibility-show {
+	visibility: visible;
+}
+.drawTool-visibility-hide {
+	visibility: hidden;
 }
 .drawTool-controller-li{
 	display: inline-block;

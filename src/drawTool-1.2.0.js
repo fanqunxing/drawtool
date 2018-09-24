@@ -214,33 +214,35 @@ function removeClass (elem, cls) {
 	return elem;
 };
 
-function showElem (elem) {
+function showElem (elem, shallow) {
 	if (isDOMElement(elem)) {
-		if (!hasClass(elem, Cls.showCss)) {
-			addClass(elem, Cls.showCss);
+		if (isTrue(shallow)) {
+			!hasClass(elem, Cls.showVisCss) && addClass(elem, Cls.showVisCss);
+			hasClass(elem, Cls.hideVisCss) && removeClass(elem, Cls.hideVisCss);
+		} else {
+			!hasClass(elem, Cls.showCss) && addClass(elem, Cls.showCss);
+			hasClass(elem, Cls.hideCss) && removeClass(elem, Cls.hideCss);
 		};
-		if (hasClass(elem, Cls.hideCss)) {
-			removeClass(elem, Cls.hideCss);
-		}
 	} else {
 		toArray(elem).forEach(function (e) {
-			showElem(e);
+			showElem(e, shallow);
 		});
 	}
 	return elem;
 };
 
-function hideElem (elem) {
+function hideElem (elem, shallow) {
 	if (isDOMElement(elem)) {
-		if (!hasClass(elem, Cls.hideCss)) {
-			addClass(elem, Cls.hideCss);
-		};
-		if (hasClass(elem, Cls.showCss)) {
-			removeClass(elem, Cls.showCss);
+		if (isTrue(shallow)) {
+			!hasClass(elem, Cls.hideVisCss) && addClass(elem, Cls.hideVisCss);
+			hasClass(elem, Cls.showVisCss) && removeClass(elem, Cls.showVisCss);
+		} else {
+			!hasClass(elem, Cls.hideCss) && addClass(elem, Cls.hideCss);
+			hasClass(elem, Cls.showCss) && removeClass(elem, Cls.showCss);
 		}
 	} else {
 		toArray(elem).forEach(function (e) {
-			hideElem(e);
+			hideElem(e, shallow);
 		});
 	};
 	return elem;
@@ -329,6 +331,8 @@ function getTargetPos (target, e) {
 var Cls = {
 	showCss: 'drawTool-show',
 	hideCss: 'drawTool-hide',
+	showVisCss: 'drawTool-visibility-show',
+	hideVisCss: 'drawTool-visibility-hide',
 	rootCss: 'drawTool-content-root',
 	ndCss: 'drawTool-node',
 	ndJs: 'js-drawTool-node',
@@ -351,6 +355,7 @@ var Cls = {
 };
 
 function appendAnchors (node) {
+	var anchorsNode = [];
 	if (isArray(node.anchors)) {
 		node.anchors.forEach(function (anchors, index) {
 			var anchorNode = document.createElement('span');
@@ -359,12 +364,13 @@ function appendAnchors (node) {
 			anchorNode.pos = [anchors[0], anchors[1]];
 			anchorNode.setAttribute('anchorNode-id', index);
 			node.appendChild(anchorNode);
+			anchorsNode.push(anchorNode);
 
 			anchorNode.style.left = anchors[0] - getElemWidth(anchorNode) / 2 + 'px';
 			anchorNode.style.top = anchors[1] - getElemHeight(anchorNode) / 2 + 'px';
 		});
 	};
-	return node;
+	return anchorsNode;
 };
 
 function appendLineMenu (elem) {
@@ -714,7 +720,11 @@ function DrawTool (wrap, setting)
 	Event.delegate(_wrap, Cls.inNdJs, 'mousedown', aopNodeMousedown);
 
 	Event.delegate(_wrap, Cls.inNdJs, 'mouseup', aopMouseup);
-
+	
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseover', nodeMouseover);
+	
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseout', nodeMouseout);
+	
 	Event.delegate(_wrap, Cls.anchorJs, 'click', aopAnchorClick);
 
 	Event.delegate(_wrap, Cls.menuDeleteJs, 'click', menuDeleteClick);
@@ -731,6 +741,20 @@ function DrawTool (wrap, setting)
 	
 	Event.on(_wrap, 'contextmenu', contextmenu);
 	
+	function nodeMouseover (e) {
+		var node = findParent(_wrap, e.target, Cls.ndJs);
+		clearTimeout(node.hideTimer);
+		var anchorsNode = node.getElementsByClassName(Cls.anchorJs);
+		showElem(anchorsNode, true);
+	};
+	
+	function nodeMouseout (e) {
+		var node = findParent(_wrap, e.target, Cls.ndJs);
+		var anchorsNode = node.getElementsByClassName(Cls.anchorJs);
+		node.hideTimer = setTimeout(function() {
+			hideElem(anchorsNode, true);
+		}, 300);
+	};
 	
 	function contextmenu (e) {
 		_avLine = new Line();
@@ -763,8 +787,8 @@ function DrawTool (wrap, setting)
 			_avLineStack.clear();
 			reDrawBgCtx();
 			reDrawAvCtx();
-			console.log('投放');
 			_isExtract = false;
+			console.log('投放');
 		};
 	};
 
@@ -774,19 +798,19 @@ function DrawTool (wrap, setting)
 			var y = e.clientY - _avCtrl.relY;
 			_avCtrl.style.left = x  + 'px';
 			_avCtrl.style.top  = y  + 'px';
-			var cx = x + _avCtrl.offsetWidth/2;
-			var cy = y + _avCtrl.offsetHeight/2;
+			var cx = x + _avCtrl.offsetWidth / 2;
+			var cy = y + _avCtrl.offsetHeight / 2;
 		    _focusLine['ctrl'+_avCtrl.ctrlFlag] = [cx, cy];
-		    // 绘制活跃层
-		    console.log(_avLineStack);
 		    reDrawAvCtx();
 		};
 	};
 
 	function menuDeleteClick () {
 		_lineStack.deleteById(_focusLine.lineid);
+		releaseFocusL();
+		hideElem(_menu);
 		reDrawBgCtx();
-		// reDrawAvCtx();
+		reDrawAvCtx();
 	};
 
 	function menuEditClick (e) {
@@ -974,8 +998,8 @@ function DrawTool (wrap, setting)
 		} else {
 			changeCursor('default');
 			clearCanvas(_avCtx, _avCvs);
+			drawFocusLine(); // 选中的线条
 		};
-		drawFocusLine(); // 选中的线条
 	};
 
 	/**
@@ -1357,7 +1381,8 @@ function DrawTool (wrap, setting)
 		
 		_wrap.appendChild(node);
 		_nodeStack.push(node);
-		appendAnchors(node);
+		var anchorsNode = appendAnchors(node);
+		hideElem(anchorsNode, true);
 		return node;
 	};
 
