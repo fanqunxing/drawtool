@@ -734,6 +734,8 @@ function DrawTool (wrap, setting)
 	
 	function contextmenu (e) {
 		_avLine = new Line();
+		hideElem(_ctrlMap('ctrl'));
+		_focusLine = null;
 		reDrawAvCtx();
 		e.preventDefault();
 	};
@@ -895,6 +897,10 @@ function DrawTool (wrap, setting)
 	 * 点击线条
 	 */
 	function lineClick (e) {
+		//只有点击源是背景canvas才能触发
+		if (_bgCvs != e.target) {
+			return;
+		};
 		var focusLine = getFocusLine(e);
 		if (isDef(focusLine)) {
 			console.log('点击线条');
@@ -905,8 +911,8 @@ function DrawTool (wrap, setting)
 			console.log('点击非线条');
 			// _focusLine = null;
 			hideElem(_menu);
-			//hideElem(_ctrlMap('ctrl'));
 		};
+		// reDrawAvCtx();
 	};
 
 	/**
