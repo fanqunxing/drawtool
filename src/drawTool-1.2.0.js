@@ -728,6 +728,15 @@ function DrawTool (wrap, setting)
 	Event.on(_wrap, 'click', lineClick);
 
 	Event.on(_wrap, 'mousemove', wrapMousemove);
+	
+	Event.on(_wrap, 'contextmenu', contextmenu);
+	
+	
+	function contextmenu (e) {
+		_avLine = new Line();
+		reDrawAvCtx();
+		e.preventDefault();
+	};
 
 	function ctrlMousedown (e) {
 		_avCtrl = e.target;
