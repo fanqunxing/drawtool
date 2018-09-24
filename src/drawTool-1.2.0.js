@@ -637,7 +637,7 @@ function DrawTool (wrap, setting)
 	var _wrap = wrap;
 	var _setting = mixin(setting, {
 		lineColor: '#26b7d0',
-		lineHoverColor: '#aaa',
+		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
 		arrowColor: '#444',
 		lineStyle: 'arrow', // arrow, line
 		type: ''
@@ -651,7 +651,7 @@ function DrawTool (wrap, setting)
 	var _avLine = new Line();
 	var _avLineStack = new LineStack();
 	var _avNode = null;
-	var _wrapLineW = 10;
+	var _wrapLineW = 5;
 	var _focusLine = null;
 	var _listenMap = {
 		clickLine: defaultfn,
@@ -734,8 +734,7 @@ function DrawTool (wrap, setting)
 	
 	function contextmenu (e) {
 		_avLine = new Line();
-		hideElem(_ctrlMap('ctrl'));
-		_focusLine = null;
+		releaseFocusL();
 		reDrawAvCtx();
 		e.preventDefault();
 	};
@@ -744,12 +743,14 @@ function DrawTool (wrap, setting)
 		_avCtrl = e.target;
 		_avCtrl.relX = e.clientX - _avCtrl.offsetLeft;
 		_avCtrl.relY = e.clientY - _avCtrl.offsetTop;
-		if (isNotEmptyList(_lineStack) && isFalse(_isExtract)) {
+		if (isNotEmptyList(_lineStack)
+			&& isFalse(_isExtract)
+			&& isDef(_focusLine)) {
 			_avLineStack = _lineStack.deleteById(_focusLine.lineid);
 			reDrawBgCtx();
 			reDrawAvCtx();
-			console.log('提取');
 			_isExtract = true;
+			console.log('提取');
 		};
 	};
 
@@ -790,6 +791,7 @@ function DrawTool (wrap, setting)
 
 	function menuEditClick (e) {
 		showElem(_ctrlMap('ctrl'));
+		hideElem(_menu);
 		var ctrl1 = _ctrlMap('ctrl1');
 		var ctrl2 = _ctrlMap('ctrl2');
 		var sPos = getAnchorPos(_focusLine.startElem);
@@ -885,6 +887,12 @@ function DrawTool (wrap, setting)
 			clearCanvas(_avCtx, _avCvs);
 		};
 	};
+	
+	// 释放选中的线条
+	function releaseFocusL () {
+		_focusLine = null;
+		hideElem(_ctrlMap('ctrl'));
+	};
 
 	/**
 	 * 当处于连线状态，触发活跃层刷新即可
@@ -909,10 +917,10 @@ function DrawTool (wrap, setting)
 			yellMenu(focusLine, pos);
 		} else {
 			console.log('点击非线条');
-			// _focusLine = null;
+			releaseFocusL();
 			hideElem(_menu);
 		};
-		// reDrawAvCtx();
+		reDrawAvCtx();
 	};
 
 	/**
