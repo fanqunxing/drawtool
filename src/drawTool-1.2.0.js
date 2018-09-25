@@ -671,7 +671,7 @@ function DrawTool (wrap, setting)
 	var _ctrlMap = appendBezierCtrls(_wrap);
 	var _avCtrl = null;
 	var _menuLine = null;
-	var _isExtract = false;
+	var _synchronized = false;
 
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
@@ -768,12 +768,12 @@ function DrawTool (wrap, setting)
 		_avCtrl.relX = e.clientX - _avCtrl.offsetLeft;
 		_avCtrl.relY = e.clientY - _avCtrl.offsetTop;
 		if (isNotEmptyList(_lineStack)
-			&& isFalse(_isExtract)
+			&& isFalse(_synchronized)
 			&& isDef(_focusLine)) {
 			_avLineStack = _lineStack.deleteById(_focusLine.lineid);
 			reDrawBgCtx();
 			reDrawAvCtx();
-			_isExtract = true;
+			_synchronized = true;
 			console.log('提取');
 		};
 	};
@@ -782,12 +782,12 @@ function DrawTool (wrap, setting)
 	 * 控制点弹起
 	 */
 	function ctrlMouseup () {
-		if (isNotEmptyList(_avLineStack) && isTrue(_isExtract)) {
+		if (isTrue(_synchronized)) {
 			_lineStack.addAll(_avLineStack);
 			_avLineStack.clear();
 			reDrawBgCtx();
 			reDrawAvCtx();
-			_isExtract = false;
+			_synchronized = false;
 			console.log('投放');
 		};
 	};
@@ -854,11 +854,12 @@ function DrawTool (wrap, setting)
 		_avNode = findParent(_wrap, target, Cls.ndJs);
 		_avNode.relX = e.clientX - _avNode.offsetLeft;
 		_avNode.relY = e.clientY - _avNode.offsetTop;
-		if (isNotEmptyList(_lineStack) && isFalse(_isExtract)) {
+		
+		if (isNotEmptyList(_lineStack) && isFalse(_synchronized)) {
 			_avLineStack = _lineStack.deleteByNodeId(_avNode.nodeid);
 			reDrawBgCtx();
 			reDrawAvCtx();
-			_isExtract = true;
+			_synchronized = true;
 			console.log('提取');
 		};
 	};
@@ -883,12 +884,12 @@ function DrawTool (wrap, setting)
 	 */
 	function mouseup () {
 		_avNode = null;
-		if (isNotEmptyList(_avLineStack) && isTrue(_isExtract)) {
+		if (isTrue(_synchronized)) {
 			_lineStack.addAll(_avLineStack);
 			_avLineStack.clear();
 			reDrawBgCtx();
 			reDrawAvCtx();
-			_isExtract = false;
+			_synchronized = false;
 			console.log('投放');
 		};
 	};
