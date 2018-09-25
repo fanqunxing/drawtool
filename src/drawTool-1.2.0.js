@@ -640,14 +640,8 @@ function DrawTool (wrap, setting)
 		error(wrap + ' is not dom');
 		return;
 	};
+	
 	var _wrap = wrap;
-	var _setting = mixin(setting, {
-		lineColor: '#26b7d0',
-		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
-		arrowColor: '#444',
-		lineStyle: 'arrow', // arrow, line
-		type: ''
-	});
 	var _avCvs = addCanvas(_wrap);
 	var _avCtx = _avCvs.getContext('2d');
 	var _bgCvs = addCanvas(_wrap);
@@ -659,6 +653,18 @@ function DrawTool (wrap, setting)
 	var _avNode = null;
 	var _wrapLineW = 5;
 	var _focusLine = null;
+	var _menu = appendLineMenu(_wrap);
+	var _ctrlMap = appendBezierCtrls(_wrap);
+	var _avCtrl = null;
+	var _synchronized = false;
+	
+	var _setting = mixin(setting, {
+		lineColor: '#26b7d0',
+		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
+		arrowColor: '#444',
+		lineStyle: 'arrow', // arrow, line
+		type: ''
+	});
 	var _listenMap = {
 		clickLine: defaultfn,
 		deleteLineBefore: defaultfn,
@@ -667,11 +673,6 @@ function DrawTool (wrap, setting)
 		linkLineBefore: defaultfn,
 		linkLineAfter: defaultfn
 	};
-	var _menu = appendLineMenu(_wrap);
-	var _ctrlMap = appendBezierCtrls(_wrap);
-	var _avCtrl = null;
-	var _menuLine = null;
-	var _synchronized = false;
 
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
