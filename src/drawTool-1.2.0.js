@@ -64,6 +64,11 @@ function toArray (it) {
 	return Array.prototype.slice.call(it);
 };
 
+function toNumber (val) {
+	var n = parseFloat(val);
+	return isNaN(n) ? val : n;
+};
+
 function isObject (obj) {
 	return obj !== null && typeof obj === 'object';
 };
@@ -476,6 +481,24 @@ nodeproto.toArray = function() {
 	return arr;
 };
 
+nodeproto.fiterData = function() {
+	var data = [];
+	for (var i = 0; i < this.length; i++) {
+		var node = this[i];
+		var left = toNumber(node.style.left);
+		var top = toNumber(node.style.top);
+		var oNode = {
+			html: node.htmlStr.replace(/[\r\n\t]/g, ''),
+			nodeid: node.nodeid,
+			pos: {x: left, y: top},
+			anchors: node.anchors
+		};
+		data.push(oNode);
+	};
+	return data;
+};
+
+
 /**
  * 线栈
  */
@@ -559,6 +582,26 @@ lineproto.toArray = function () {
 		arr.push(this[i]);
 	};
 	return arr;
+};
+
+lineproto.fiterData = function () {
+	var data = [];
+	for (var i = 0; i < this.length; i++) {
+		var line = this[i];
+		var oLine = {
+			lineid: line.lineid,
+			startNodeid: line.startNodeid,
+			startAnchorid: line.startAnchorid,
+			endNodeid: line.endNodeid,
+			endAnchorid: line.endAnchorid,
+			ctrl1: line.ctrl1,
+			ctrl2: line.ctrl2,
+			type: line.type,
+			style: line.style
+		}
+		data.push(oLine);
+	};
+	return data;
 };
 
 lineproto.clear = function () {
@@ -1405,7 +1448,26 @@ function DrawTool (wrap, setting)
 	};
 
 	this.getAllLines = function () {
-		return _lineStack.toArray();
+		return _lineStack.fiterData();
+	};
+	
+	this.getAllNodesInfo = function () {
+		return _nodeStack.fiterData();
+	};
+	
+	this.init = function (nodeStack, lineStack) {
+		if (!isArray(nodeStack) || !isArray(lineStack)) {
+			error( 'unknown arguments in init(nodeStack,lineStack)' );
+		};
+		_nodeStack.clear();
+		for (var i = 0; i < nodeStack.length; i++) {
+			var node = nodeStack[i];
+			this.addNode(node);
+		}
+		
+		_lineStack.clear();
+		_lineStack.addAll(lineStack);
+		console.log(_lineStack);
 	};
 };
 

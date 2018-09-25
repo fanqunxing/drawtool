@@ -60,25 +60,27 @@ drawTool.listen('linkLineStart', function(line) {
 function save() {
 	var lineArr = drawTool.getAllLines();
 	var nodeArr = drawTool.getAllNodes();
+	var nodeInfoArr = drawTool.getAllNodesInfo();
 	console.log(lineArr);
 	console.log(nodeArr);
-	//localStorage.setItem('lineArr', JSON.stringify(lineArr));
-	//localStorage.setItem('nodeArr', JSON.stringify(nodeArr));
+	console.log(nodeInfoArr);
+	localStorage.setItem('lineArr', JSON.stringify(lineArr));
+	localStorage.setItem('nodeArr', JSON.stringify(nodeInfoArr));
 };
-/*
+
 init();
-
-
-
-function clearMap() {
-	drawTool.clear();
-};
-
 function init() {
 	var lineArr = JSON.parse(localStorage.getItem('lineArr'));
 	var nodeArr = JSON.parse(localStorage.getItem('nodeArr'));
 	drawTool.init(nodeArr, lineArr);
 };
+
+/*
+
+function clearMap() {
+	drawTool.clear();
+};
+
 
 
 
