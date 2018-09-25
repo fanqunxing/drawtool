@@ -55,15 +55,20 @@ drawTool.listen('linkLineStart', function(line) {
 	line.setStyle(arrow);
 	line.setType(lineType);
 });
-/*
-init();
+
 
 function save() {
 	var lineArr = drawTool.getAllLines();
-	var nodeArr = drawTool.getAllNodesInfo();
-	localStorage.setItem('lineArr', JSON.stringify(lineArr));
-	localStorage.setItem('nodeArr', JSON.stringify(nodeArr));
+	var nodeArr = drawTool.getAllNodes();
+	console.log(lineArr);
+	console.log(nodeArr);
+	//localStorage.setItem('lineArr', JSON.stringify(lineArr));
+	//localStorage.setItem('nodeArr', JSON.stringify(nodeArr));
 };
+/*
+init();
+
+
 
 function clearMap() {
 	drawTool.clear();

@@ -1371,7 +1371,9 @@ function DrawTool (wrap, setting)
 		addClass(innerNode, Cls.inNdJs);
 		
 		_wrap.appendChild(node);
-		_nodeStack.push(node);
+		var reNode = _nodeStack.push(node);
+		reNode.setAttribute('node-id', reNode.nodeid);
+		
 		var anchorsNode = appendAnchors(node);
 		hideElem(anchorsNode, true);
 		return node;
@@ -1385,6 +1387,14 @@ function DrawTool (wrap, setting)
 				fn = arguments[1];
 			_listenMap[type] = fn;
 		};
+	};
+	
+	this.getAllNodes = function () {
+		return _nodeStack.toArray();
+	};
+
+	this.getAllLines = function () {
+		return _lineStack.toArray();
 	};
 };
 
