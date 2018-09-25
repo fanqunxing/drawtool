@@ -98,16 +98,6 @@ function mixin (target, source, force) {
 	return target;
 };
 
-function once (fn) {
-	var called = false;
-  	return function () {
-    	if (!called) {
-      		called = true;
-      		fn.apply(this, arguments);
-    	}
-  	}
-};
-
 function aop (option) {
 	option = mixin(option, {
 		before: defaultfn,
@@ -1293,7 +1283,7 @@ function DrawTool (wrap, setting)
 	};
 
 	function bezierLineTo (ctx, line, sPos, d1Pos, d2Pos, ePos, nodeRad) {
-		var isArrow = (_setting.lineStyle === 'arrow');
+		var isArrow = (line.style === 'arrow');
 		var l = sqrt(pow((d2Pos.x - ePos.x), 2) + pow((d2Pos.y - ePos.y), 2));
 		var k = (nodeRad + 10) / l;
 		var innerK = nodeRad / l;

@@ -50,14 +50,10 @@ drawTool.listen({
 // broken bezier straight
 var index = 1;
 drawTool.listen('linkLineStart', function(line) {
-	if (index % 2 == 1) {
-		line.setStyle('arrow');
-		line.setType('bezier');
-	} else {
-		line.setStyle('none');
-		line.setType('straight');
-	}
-	index++;
+	var arrow = $("#arrow").val();
+	var lineType = $("#lineType").val();
+	line.setStyle(arrow);
+	line.setType(lineType);
 });
 /*
 init();
