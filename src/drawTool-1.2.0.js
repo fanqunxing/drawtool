@@ -344,6 +344,16 @@ var Cls = {
 	avCvs: 'drawTool-active-canvas'
 };
 
+encryptCls(Cls);
+
+function encryptCls(cls) {
+	eachProp(cls, function (val, prop) {
+		if (prop.indexOf('Js') > -1) {
+			cls[prop] += '-' + Math.floor(Math.random() * new Date().getTime()); 
+		}
+	});
+};
+
 function appendAnchors (node) {
 	var anchorsNode = [];
 	if (isArray(node.anchors)) {
@@ -860,7 +870,7 @@ function DrawTool (wrap, setting)
 	 * 2. 渲染活跃层数据
 	 */
 	function nodeMousemove (e) {
-		if (_avNode) {
+		if (isDOMElement(_avNode)) {
 		    _avNode.style.cursor = 'move';
 			_avNode.style.left = e.clientX - _avNode.relX + 'px';
 			_avNode.style.top  = e.clientY - _avNode.relY + 'px';
