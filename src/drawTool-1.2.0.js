@@ -60,7 +60,7 @@ function isArray (it) {
     return ostring.call(it) === '[object Array]';
 };
 
-function toArray (it) {
+function slice (it) {
 	return Array.prototype.slice.call(it);
 };
 
@@ -219,7 +219,7 @@ function showElem (elem, shallow) {
 			hasClass(elem, Cls.hideCss) && removeClass(elem, Cls.hideCss);
 		};
 	} else {
-		toArray(elem).forEach(function (e) {
+		slice(elem).forEach(function (e) {
 			showElem(e, shallow);
 		});
 	}
@@ -236,7 +236,7 @@ function hideElem (elem, shallow) {
 			hasClass(elem, Cls.showCss) && removeClass(elem, Cls.showCss);
 		}
 	} else {
-		toArray(elem).forEach(function (e) {
+		slice(elem).forEach(function (e) {
 			hideElem(e, shallow);
 		});
 	};
@@ -1455,6 +1455,7 @@ function DrawTool (wrap, setting)
 		node.anchors = conf.anchors;
 
 		var innerNode = node.children[0];
+		innerNode.nodeid = node.nodeid;
 		addClass(innerNode, Cls.inNdJs);
 		
 		_wrap.appendChild(node);
@@ -1486,6 +1487,29 @@ function DrawTool (wrap, setting)
 	
 	this.getAllNodesInfo = function () {
 		return _nodeStack.fiterData();
+	};
+
+	this.deleteNodeById = function () {
+		var nodeList = [];
+		slice(arguments).forEach(function(args) {
+			var nodeid = toNumber(args);
+			_lineStack.deleteByNodeId(nodeid);
+			var node = _nodeStack.deleteById(nodeid);
+			nodeList.push(node);
+			reDrawBgCtx();
+			reDrawAvCtx();
+		});
+		return nodeList;
+	};
+
+	this.clear = function () {
+		while (_nodeStack.length) {
+			var node = _nodeStack.peek();
+			_lineStack.deleteByNodeId(node.nodeid);
+			_nodeStack.deleteById(node.nodeid);
+		};
+		reDrawBgCtx();
+		reDrawAvCtx();
 	};
 	
 	this.init = function (nodeStack, lineStack) {
