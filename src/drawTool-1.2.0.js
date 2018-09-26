@@ -250,17 +250,6 @@ function hideElem (elem, shallow) {
 	return elem;
 };
 
-function addCanvas (elem) {
-	var canvas = document.createElement('canvas');
-	canvas.width = getElemWidth(elem);
-	canvas.height = getElemHeight(elem);
-	elem.appendChild(canvas);
-	return canvas;
-};
-
-function clearCanvas (ctx , canvas) {
-	ctx.clearRect(0, 0, getElemWidth(canvas), getElemHeight(canvas));
-};
 
 var Event = new Object();
 Event.on = function (elem, type, fn) {
@@ -300,25 +289,6 @@ Event.off = function (elem, type, fn) {
 	Event.off(elem, type, fn);
 };
 
-function getMousePos (evt) {
-	var e = window.event || evt;
-    var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
-    var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
-    var x = e.pageX || e.clientX + scrollX;
-    var y = e.pageY || e.clientY + scrollY;
-    return { x : x, y : y };
-};
-
-function getTargetPos (target, e) {
-	var mousePos = getMousePos(e);
-	var targetPos = target.getBoundingClientRect();
-	var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
-	var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
-	var x = targetPos.left + scrollX ;
-	var y = targetPos.top + scrollY;
-	return { x: ( mousePos.x - x ), y : ( mousePos.y -y )}
-};
-
 var Cls = {
 	showCss: 'drawTool-show',
 	hideCss: 'drawTool-hide',
@@ -345,7 +315,38 @@ var Cls = {
 	avCvs: 'drawTool-active-canvas'
 };
 
-function encryptCls(cls) {
+function addCanvas (elem) {
+	var canvas = document.createElement('canvas');
+	canvas.width = getElemWidth(elem);
+	canvas.height = getElemHeight(elem);
+	elem.appendChild(canvas);
+	return canvas;
+};
+
+function clearCanvas (ctx , canvas) {
+	ctx.clearRect(0, 0, getElemWidth(canvas), getElemHeight(canvas));
+};
+
+function getMousePos (evt) {
+	var e = window.event || evt;
+    var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
+    var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
+    var x = e.pageX || e.clientX + scrollX;
+    var y = e.pageY || e.clientY + scrollY;
+    return { x : x, y : y };
+};
+
+function getTargetPos (target, e) {
+	var mousePos = getMousePos(e);
+	var targetPos = target.getBoundingClientRect();
+	var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
+	var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
+	var x = targetPos.left + scrollX ;
+	var y = targetPos.top + scrollY;
+	return { x: ( mousePos.x - x ), y : ( mousePos.y -y )}
+};
+
+function encryptCls (cls) {
 	eachProp(cls, function (val, prop) {
 		if (prop.indexOf('Js') > -1) {
 			cls[prop] += '-' + Math.floor(Math.random() * new Date().getTime()); 
@@ -669,18 +670,6 @@ Line.prototype.setEnd = function (anchor) {
 	return this;
 };
 
-Line.prototype.reSet = function () {
-	this.startNodeid = null;
-	this.startAnchorid = null;
-	this.startElem = null;
-	this.endNodeid = null;
-	this.endAnchorid = null;
-	this.endElem = null;
-	this.ctrl1 = [];
-	this.ctrl2 = [];
-	this.status = 0;
-	return this;
-};
 
 /**
  * DrawTool class
