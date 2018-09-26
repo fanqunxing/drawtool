@@ -407,7 +407,21 @@ function appendBezierCtrls (elem) {
 	hideElem(ul);
 	var map = { ctrl1: li1, ctrl2: li2, ctrl: ul };
 	return function (val) { return map[val]; };
-}
+};
+
+function getAnchorById (anchorsLists, anchorid) {
+	var anchor = null;
+	anchorsLists.forEach(function (oAnchor) {
+		if (hasClass(oAnchor, Cls.anchorJs)) {
+			if(oAnchor.anchorid == anchorid) {
+				anchor = oAnchor;
+				return false;
+			};
+		};
+	});
+	return anchor;
+};
+
 
 /**
  * 节点栈
@@ -1132,6 +1146,17 @@ function DrawTool (wrap, setting)
         var y = e.pageY - _bgCvs.getBoundingClientRect().top;
         return { x: x, y: y };
 	};
+	
+	
+	function findAnchorElem (oLine) {
+		var topoNodeStart = _nodeStack.getNodeById(oLine.startNodeid);
+		var topoNodeEnd = _nodeStack.getNodeById(oLine.endNodeid);
+		var startAnchorsLists = topoNodeStart.childNodes;
+		var endAnchorsLists = topoNodeEnd.childNodes;
+		var start = getAnchorById(startAnchorsLists, oLine.startAnchorid);
+		var end = getAnchorById(endAnchorsLists, oLine.endAnchorid);
+		return {startElem: start, endElem: end};
+	};
 
 
 	// 根据坐标获取线
@@ -1312,8 +1337,16 @@ function DrawTool (wrap, setting)
 		var ePos = getTargetPos(_bgCvs, e);
 		straightLineTo(_avCtx, _avLine, sPos, ePos);
 	};
+	
+	
 
 	function linkLine (ctx, line) {
+		if (!isDOMElement(line.startElem) || !isDOMElement(line.endElem)) {
+			console.log('寻址');
+			var anchorMap = findAnchorElem(line);
+			line.startElem = anchorMap['startElem'];
+			line.endElem = anchorMap['endElem'];
+		}
 		// 解析线
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
@@ -1463,11 +1496,10 @@ function DrawTool (wrap, setting)
 		for (var i = 0; i < nodeStack.length; i++) {
 			var node = nodeStack[i];
 			this.addNode(node);
-		}
-		
+		};
 		_lineStack.clear();
 		_lineStack.addAll(lineStack);
-		console.log(_lineStack);
+		reDrawBgCtx();
 	};
 };
 
