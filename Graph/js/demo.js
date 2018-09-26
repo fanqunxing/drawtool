@@ -75,14 +75,11 @@ function init() {
 	drawTool.init(nodeArr, lineArr);
 };
 
-/*
+
 
 function clearMap() {
 	drawTool.clear();
 };
-
-
-
 
 
 $("#canvas").delegate('.js-node', 'mousemove', function(e) {
@@ -102,10 +99,12 @@ $("#canvas").delegate('.js-node', 'mouseleave', function() {
 });
 
 $("#canvas").delegate('.option', 'click', function() {
+	console.log('option');
 	var nodeid = $(this).closest('.js-node').get(0).nodeid;
+	console.log(nodeid);
 	drawTool.deleteNodeById(nodeid);
 });
-*/
+
 
 
 

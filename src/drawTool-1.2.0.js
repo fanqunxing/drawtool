@@ -680,7 +680,7 @@ function DrawTool (wrap, setting)
 		error(wrap + ' is not dom');
 		return;
 	};
-	
+	encryptCls(Cls);
 	var _wrap = wrap;
 	var _avCvs = addCanvas(_wrap);
 	var _avCtx = _avCvs.getContext('2d');
@@ -714,7 +714,6 @@ function DrawTool (wrap, setting)
 		linkLineAfter: defaultfn
 	};
 
-	encryptCls(Cls);
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
 	addClass(_avCvs, [Cls.cvs, Cls.avCvs]);
