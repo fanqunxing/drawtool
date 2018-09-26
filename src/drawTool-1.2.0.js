@@ -36,10 +36,6 @@ function pow (n, m) {
 	return Math.pow(n, m);
 };
 
-function isUndef (v) {
-  return v === undefined || v === null;
-};
-
 function isDef (v) {
   return v !== undefined && v !== null;
 };
@@ -61,7 +57,7 @@ function isArray (it) {
 };
 
 function slice (it) {
-	return Array.prototype.slice.call(it);
+	return ap.slice.call(it);
 };
 
 function toNumber (val) {
@@ -209,6 +205,17 @@ function removeClass (elem, cls) {
 	return elem;
 };
 
+function findParent (pElem, elem, cls) {
+	if (pElem == elem) {
+		return null;
+	};
+	if (hasClass(elem, cls)) {
+		return elem;
+	} else {
+		return findParent(pElem, elem.parentNode, cls);
+	};
+};
+
 function showElem (elem, shallow) {
 	if (isDOMElement(elem)) {
 		if (isTrue(shallow)) {
@@ -267,17 +274,6 @@ Event.on = function (elem, type, fn) {
 		};
 	};
 	Event.on(elem, type, fn);
-};
-
-function findParent (pElem, elem, cls) {
-	if (pElem == elem) {
-		return null;
-	};
-	if (hasClass(elem, cls)) {
-		return elem;
-	} else {
-		return findParent(pElem, elem.parentNode, cls);
-	};
 };
 
 Event.delegate = function (pElem, className, type, fn ) {
@@ -348,8 +344,6 @@ var Cls = {
 	bgCvs: 'drawTool-background-canvas',
 	avCvs: 'drawTool-active-canvas'
 };
-
-encryptCls(Cls);
 
 function encryptCls(cls) {
 	eachProp(cls, function (val, prop) {
@@ -432,9 +426,9 @@ function NodeStack () {
 
 var nodeproto = NodeStack.prototype;
 
-nodeproto.pop = Array.prototype.pop;
+nodeproto.pop = ap.pop;
 
-nodeproto.forEach = Array.prototype.forEach;
+nodeproto.forEach = ap.forEach;
 
 nodeproto.peek = function()
 {
@@ -451,7 +445,7 @@ nodeproto.push = function (node) {
 		};
 	});
 	node.nodeid = node.nodeid || (Number(maxId) + 1);
-	Array.prototype.push.call(this, node);
+	ap.push.call(this, node);
 	return node;
 };
 
@@ -473,7 +467,7 @@ nodeproto.deleteById = function( nodeid ) {
 		var oNode = this[i];
 		if( oNode.nodeid == nodeid ) {
 			oNode.remove();
-			Array.prototype.splice.call(this, i, 1);
+			ap.splice.call(this, i, 1);
 			break;
 		}
 	}
@@ -523,9 +517,9 @@ function LineStack()
 
 var lineproto = LineStack.prototype;
 
-lineproto.pop = Array.prototype.pop;
+lineproto.pop = ap.pop;
 
-lineproto.forEach = Array.prototype.forEach;
+lineproto.forEach = ap.forEach;
 
 lineproto.peek = function () {
 	return this.length > 0
@@ -541,7 +535,7 @@ lineproto.push = function (line) {
 		};
 	};
 	line.lineid = line.lineid || (maxId + 1);
-	Array.prototype.push.call(this, line);
+	ap.push.call(this, line);
 	return line;
 };
 
@@ -558,7 +552,7 @@ lineproto.deleteById = function (lineid) {
 	for (var i = 0; i < this.length; i++) {
 		if (this[i].lineid == lineid) {
 			lineStack.push(this[i]);
-			Array.prototype.splice.call( this, i, 1 );
+			ap.splice.call( this, i, 1 );
 			break;
 		};
 	};
@@ -571,7 +565,7 @@ lineproto.deleteByNodeId = function (nodeid) {
 		if( this[i].startNodeid == nodeid
 			|| this[i].endNodeid == nodeid) {
 			lineStack.push(this[i]);
-			Array.prototype.splice.call(this, i, 1);
+			ap.splice.call(this, i, 1);
 			i--;
 		};
 	};
@@ -720,7 +714,7 @@ function DrawTool (wrap, setting)
 		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
 		arrowColor: '#444',
 		lineStyle: 'arrow', // arrow, line
-		type: ''
+		type: 'bezier'
 	});
 	var _listenMap = {
 		clickLine: defaultfn,
@@ -731,9 +725,11 @@ function DrawTool (wrap, setting)
 		linkLineAfter: defaultfn
 	};
 
+	encryptCls(Cls);
 	addClass(_wrap, Cls.rootCss);
 	addClass(_bgCvs, [Cls.cvs, Cls.bgCvs]);
 	addClass(_avCvs, [Cls.cvs, Cls.avCvs]);
+
 
 	var aopAnchorClick = aop({
 		before: function () {
@@ -775,30 +771,7 @@ function DrawTool (wrap, setting)
 		}
 	});
 
-	Event.delegate(_wrap, Cls.inNdJs, 'mousedown', aopNodeMousedown);
 
-	Event.delegate(_wrap, Cls.inNdJs, 'mouseup', aopMouseup);
-	
-	Event.delegate(_wrap, Cls.inNdJs, 'mouseover', nodeMouseover);
-	
-	Event.delegate(_wrap, Cls.inNdJs, 'mouseout', nodeMouseout);
-	
-	Event.delegate(_wrap, Cls.anchorJs, 'click', aopAnchorClick);
-
-	Event.delegate(_wrap, Cls.menuDeleteJs, 'click', menuDeleteClick);
-
-	Event.delegate(_wrap, Cls.menuEditJs, 'click', menuEditClick);
-
-	Event.delegate(_wrap, Cls.ctrlJs, 'mousedown', aopCtrlMousedown);
-
-	Event.delegate(_wrap, Cls.ctrlJs, 'mouseup', aopCtrlMouseup);
-
-	Event.on(_wrap, 'click', lineClick);
-
-	Event.on(_wrap, 'mousemove', wrapMousemove);
-	
-	Event.on(_wrap, 'contextmenu', contextmenu);
-	
 	function nodeMouseover (e) {
 		var node = findParent(_wrap, e.target, Cls.ndJs);
 		clearTimeout(node.hideTimer);
@@ -970,12 +943,6 @@ function DrawTool (wrap, setting)
 			clearCanvas(_avCtx, _avCvs);
 		};
 	};
-	
-	// 释放选中的线条
-	function releaseFocusL () {
-		_focusLine = null;
-		hideElem(_ctrlMap('ctrl'));
-	};
 
 	/**
 	 * 当处于连线状态，触发活跃层刷新即可
@@ -1007,6 +974,55 @@ function DrawTool (wrap, setting)
 	};
 
 	/**
+	 * hover 画布
+	 * 显示对应激活的线条
+	 */
+	function wrapMousemove (e) {
+		var focusLine = getFocusLine(e);
+		if (isDef(focusLine)) {
+			clearCanvas(_avCtx, _avCvs);
+			changeCursor('pointer');
+			drawWrapLine(focusLine);
+		} else {
+			changeCursor('default');
+			clearCanvas(_avCtx, _avCvs);
+			drawFocusLine();
+		};
+	};
+
+	Event.delegate(_wrap, Cls.inNdJs, 'mousedown', aopNodeMousedown);
+
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseup', aopMouseup);
+	
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseover', nodeMouseover);
+	
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseout', nodeMouseout);
+	
+	Event.delegate(_wrap, Cls.anchorJs, 'click', aopAnchorClick);
+
+	Event.delegate(_wrap, Cls.menuDeleteJs, 'click', menuDeleteClick);
+
+	Event.delegate(_wrap, Cls.menuEditJs, 'click', menuEditClick);
+
+	Event.delegate(_wrap, Cls.ctrlJs, 'mousedown', aopCtrlMousedown);
+
+	Event.delegate(_wrap, Cls.ctrlJs, 'mouseup', aopCtrlMouseup);
+
+	Event.on(_wrap, 'click', lineClick);
+
+	Event.on(_wrap, 'mousemove', wrapMousemove);
+	
+	Event.on(_wrap, 'contextmenu', contextmenu);
+	
+	/**
+	 * 释放选中的线条
+	 */
+	function releaseFocusL () {
+		_focusLine = null;
+		hideElem(_ctrlMap('ctrl'));
+	};
+
+	/**
 	 * 召唤操作菜单
 	 */
 	function yellMenu (line, pos) {
@@ -1026,6 +1042,15 @@ function DrawTool (wrap, setting)
 	};
 
 	/**
+	 * 根据事件获取canvas坐标
+	 */
+	function getCavsPosByEvt (e) {
+		var x = e.pageX - _bgCvs.getBoundingClientRect().left;
+        var y = e.pageY - _bgCvs.getBoundingClientRect().top;
+        return { x: x, y: y };
+	};
+
+	/**
 	 * 获取焦点线条
 	 */
 	function getFocusLine (e) {
@@ -1036,30 +1061,75 @@ function DrawTool (wrap, setting)
 		};
 		return resultLine;
 	};
+
+	/**
+	 * 获取锚点位置
+	 */
+	function getAnchorPos (elem) {
+		var pos = {};
+		if (isDOMElement(elem)) {
+			pos.y = elem.parentNode.offsetTop + elem.offsetTop + getElemHeight(elem) / 2;
+			pos.x = elem.parentNode.offsetLeft + elem.offsetLeft + getElemWidth(elem) / 2;
+		};
+		return pos;
+	};
+
+	/**
+	 * 根据坐标获取线
+	 */
+	function getLineByPos (x, y) {
+		var resultLine = null;
+		_lineStack.forEach(function(line) {
+			var isInPath = isPointInPath(line, {x: x, y: y});
+			if (isInPath) {
+				resultLine = line;
+				return false;
+			}
+		});
+		return resultLine;
+	};
+
+	/**
+	 * 获取贝塞尔坐标
+	 */
+	function getBezierPos (line, sPos, ePos) {
+		var bezierMap = {}; 
+		var posMap = divide(sPos, ePos, 3);
+		bezierMap['d1Pos'] = toPos(line.ctrl1);
+		bezierMap['d2Pos'] = toPos(line.ctrl2);
+		if (!isNotEmptyList(line.ctrl1)) {
+			bezierMap['d1Pos'] = posMap('d1');
+		};
+		if (!isNotEmptyList(line.ctrl2)) {
+			bezierMap['d2Pos'] = posMap('d2');
+		};
+		return function (val) {
+			return bezierMap[val];
+		};
+	};
+
+	/**
+	 * 通过线条获取锚点元素
+	 */
+	function getAnchorElemByLine (oLine) {
+		var topoNodeStart = _nodeStack.getNodeById(oLine.startNodeid);
+		var topoNodeEnd = _nodeStack.getNodeById(oLine.endNodeid);
+		var startAnchorsLists = topoNodeStart.childNodes;
+		var endAnchorsLists = topoNodeEnd.childNodes;
+		var start = getAnchorById(startAnchorsLists, oLine.startAnchorid);
+		var end = getAnchorById(endAnchorsLists, oLine.endAnchorid);
+		return {startElem: start, endElem: end};
+	};
 	
-	
+	/**
+	 * 绘制焦点线条
+	 */
 	function drawFocusLine () {
 		if (isDef(_focusLine)) {
 			drawWrapLine(_focusLine);
 		};
 	};
 
-	/**
-	 * hover 画布
-	 * 显示对应激活的线条
-	 */
-	function wrapMousemove (e) {
-		var focusLine = getFocusLine(e);
-		if (isDef(focusLine)) {
-			clearCanvas(_avCtx, _avCvs);
-			changeCursor('pointer');
-			drawWrapLine(focusLine);
-		} else {
-			changeCursor('default');
-			clearCanvas(_avCtx, _avCvs);
-			drawFocusLine(); // 选中的线条
-		};
-	};
 
 	/**
 	 * 改变鼠标样式
@@ -1099,6 +1169,9 @@ function DrawTool (wrap, setting)
 		};
 	};
 	
+	/**
+	 * 贝塞尔包裹层
+	 */
 	function bezierWrap (ctx, line, sPos, d1Pos, d2Pos, ePos) {
 		var nodeRad = 0;
 		var isArrow = (_setting.lineStyle === 'arrow');
@@ -1140,53 +1213,6 @@ function DrawTool (wrap, setting)
 		ctx.restore();
 	};
 
-	//根据事件获取canvas坐标
-	function getCavsPosByEvt (e) {
-		var x = e.pageX - _bgCvs.getBoundingClientRect().left;
-        var y = e.pageY - _bgCvs.getBoundingClientRect().top;
-        return { x: x, y: y };
-	};
-	
-	
-	function findAnchorElem (oLine) {
-		var topoNodeStart = _nodeStack.getNodeById(oLine.startNodeid);
-		var topoNodeEnd = _nodeStack.getNodeById(oLine.endNodeid);
-		var startAnchorsLists = topoNodeStart.childNodes;
-		var endAnchorsLists = topoNodeEnd.childNodes;
-		var start = getAnchorById(startAnchorsLists, oLine.startAnchorid);
-		var end = getAnchorById(endAnchorsLists, oLine.endAnchorid);
-		return {startElem: start, endElem: end};
-	};
-
-
-	// 根据坐标获取线
-	function getLineByPos (x, y) {
-		var resultLine = null;
-		_lineStack.forEach(function(line) {
-			var isInPath = isPointInPath(line, {x: x, y: y});
-			if (isInPath) {
-				resultLine = line;
-				return false;
-			}
-		});
-		return resultLine;
-	};
-	
-	function getBezierPos (line, sPos, ePos) {
-		var bezierMap = {}; 
-		var posMap = divide(sPos, ePos, 3);
-		bezierMap['d1Pos'] = toPos(line.ctrl1);
-		bezierMap['d2Pos'] = toPos(line.ctrl2);
-		if (!isNotEmptyList(line.ctrl1)) {
-			bezierMap['d1Pos'] = posMap('d1');
-		};
-		if (!isNotEmptyList(line.ctrl2)) {
-			bezierMap['d2Pos'] = posMap('d2');
-		};
-		return function (val) {
-			return bezierMap[val];
-		};
-	};
 
 
 	/*
@@ -1217,6 +1243,9 @@ function DrawTool (wrap, setting)
 		return isPoint;
 	};
 	
+    /**
+	 * 判断点是否在贝塞尔线中
+	 */
 	function isPointInPathBezier (sPos, d1Pos, d2Pos, ePos, pos) {
 		var dδ = 10;//偏移距离
 	    var d = _wrapLineW / 2;
@@ -1278,6 +1307,9 @@ function DrawTool (wrap, setting)
 	    return _avCtx.isPointInPath(pos.x, pos.y);
 	};
 	
+	/**
+	 * 判断点是否在直线中
+	 */
 	function isPointInPathStraight (sPos, ePos, pos) {
 		var d = _wrapLineW / 2;
 		var red = 10;
@@ -1301,36 +1333,41 @@ function DrawTool (wrap, setting)
 		return _avCtx.isPointInPath(pos.x, pos.y);
 	};
 
+	/**
+	 * 重绘背景层
+	 */
 	function reDrawBgCtx () {
 		clearCanvas(_bgCtx, _bgCvs);
-		linkAllBgLink();
-	};
-
-	function reDrawAvCtx () {
-		clearCanvas(_avCtx, _avCvs);
-		if (_avLine.status !== 0) {
-			linkLineProcess();
-		}
-		linkAllAvLink();
-		drawFocusLine();
-	};
-
-	function pushDrawBgCtx (line) {
-		linkLine(_bgCtx, line);
-	};
-
-	function linkAllBgLink () {
 		_lineStack.forEach(function (line) {
 			linkLine(_bgCtx, line);
 		});
 	};
 
-	function linkAllAvLink () {
+	/**
+	 * 重绘活跃层
+	 */
+	function reDrawAvCtx () {
+		clearCanvas(_avCtx, _avCvs);
+		if (_avLine.status !== 0) {
+			linkLineProcess();
+		};
 		_avLineStack.forEach(function (line) {
 			linkLine(_avCtx, line);
 		});
+		drawFocusLine();
 	};
 
+	/**
+	 * 背景层加画一条线
+	 */
+	function pushDrawBgCtx (line) {
+		linkLine(_bgCtx, line);
+	};
+
+
+	/**
+	 * 绘制正在生成的线条
+	 */
 	function linkLineProcess (e) {
 		// console.log('linkLineProcess');
 		var sPos = getAnchorPos(_avLine.startElem);
@@ -1339,11 +1376,13 @@ function DrawTool (wrap, setting)
 	};
 	
 	
-
+	/**
+	 * 画线
+	 */
 	function linkLine (ctx, line) {
 		if (!isDOMElement(line.startElem) || !isDOMElement(line.endElem)) {
 			console.log('寻址');
-			var anchorMap = findAnchorElem(line);
+			var anchorMap = getAnchorElemByLine(line);
 			line.startElem = anchorMap['startElem'];
 			line.endElem = anchorMap['endElem'];
 		}
@@ -1369,6 +1408,9 @@ function DrawTool (wrap, setting)
 		};
 	};
 
+	/**
+	 * 画贝塞尔曲线
+	 */
 	function bezierLineTo (ctx, line, sPos, d1Pos, d2Pos, ePos, nodeRad) {
 		var isArrow = (line.style === 'arrow');
 		var l = sqrt(pow((d2Pos.x - ePos.x), 2) + pow((d2Pos.y - ePos.y), 2));
@@ -1400,6 +1442,9 @@ function DrawTool (wrap, setting)
 	};
 
 
+	/**
+	 * 画贝塞尔箭头
+	 */
 	function bezierStyleArrow (ctx, d2Pos, arrowEnd, bezierEnd) {
 		ctx.beginPath(); 
 	    ctx.translate(arrowEnd.x, arrowEnd,y);
@@ -1412,6 +1457,9 @@ function DrawTool (wrap, setting)
 	    ctx.fill();
 	};
 
+	/**
+	 * 画直线
+	 */
 	function straightLineTo (ctx, line, sPos, ePos) {
 		if (ctx !== _avCtx) {
 			ctx.strokeStyle = _setting.lineColor;
@@ -1425,6 +1473,9 @@ function DrawTool (wrap, setting)
 		ctx.restore();
 	};
 
+	/**
+	 * 画直线箭头
+	 */
 	function styleArrow (ctx, sPos, ePos) {
 		ctx.translate(ePos.x, ePos.y);
 		ctx.rotate(Math.atan2(ePos.y - sPos.y, ePos.x - sPos.x));
@@ -1435,15 +1486,7 @@ function DrawTool (wrap, setting)
 		ctx.fill();
 	};
 
-	function getAnchorPos (elem) {
-		var pos = {};
-		if (isDOMElement(elem)) {
-			pos.y = elem.parentNode.offsetTop + elem.offsetTop + getElemHeight(elem) / 2;
-			pos.x = elem.parentNode.offsetLeft + elem.offsetLeft + getElemWidth(elem) / 2;
-		};
-		return pos;
-	};
-
+	
 	this.addNode = function (conf) {
 		var node = document.createElement('div');
 		addClass(node, [Cls.ndCss, Cls.ndJs]);
@@ -1526,6 +1569,9 @@ function DrawTool (wrap, setting)
 		reDrawBgCtx();
 	};
 };
+
+
+DrawTool.prototype.version = version;
 
 return DrawTool;
 
