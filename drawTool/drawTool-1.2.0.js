@@ -868,6 +868,8 @@ function DrawTool (wrap, setting)
 	 * 3. 此时同时刷新固定层和活跃层
 	 */
 	function nodeMousedown (e) {
+		releaseFocusL();
+		hideElem(_menu);
 		var e = e || window.event;
 		var target = e.target || e.srcElement;
 		_avNode = findParent(_wrap, target, Cls.ndJs);
