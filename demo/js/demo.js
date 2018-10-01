@@ -48,12 +48,13 @@ drawTool.listen({
 
 // 动态设置线的样式
 // broken bezier straight
-var index = 1;
 drawTool.listen('linkLineStart', function(line) {
 	var arrow = $("#arrow").val();
 	var lineType = $("#lineType").val();
+	var auto = $("#auto").val();
 	line.setStyle(arrow);
 	line.setType(lineType);
+	line.setAuto(Number(auto));
 });
 
 

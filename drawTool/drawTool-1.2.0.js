@@ -606,7 +606,8 @@ lineproto.fiterData = function () {
 			ctrl1: line.ctrl1,
 			ctrl2: line.ctrl2,
 			type: line.type,
-			style: line.style
+			style: line.style,
+			auto: line.auto
 		}
 		data.push(oLine);
 	};
@@ -638,6 +639,7 @@ function Line (type, style) {
 	// 0 init 1 start 2 end
 	this.status = 0;
 	this.style = isLineStyle(style) || 'none';
+	this.auto = true; // 是否自动判断
 };
 
 Line.prototype.setType = function (type) {
@@ -653,6 +655,11 @@ Line.prototype.setStyle = function (style) {
 	};
 	return this;
 };
+
+Line.prototype.setAuto = function (isAuto) {
+	this.auto = !!isAuto;
+	return this;
+}
 
 Line.prototype.setStart = function (anchor) {
 	this.startNodeid = anchor.parentNode.nodeid;
@@ -1025,6 +1032,12 @@ function DrawTool (wrap, setting)
 				var menuEdit = _menu.getElementsByClassName(Cls.menuEditCss);
 				hideElem(menuEdit);
 				break;
+			case 'broken':
+				if (isTrue(line.auto)) {
+					var menuEdit = _menu.getElementsByClassName(Cls.menuEditCss);
+					hideElem(menuEdit);
+				};
+				break;
 		};
 		showElem(_menu);
 		_menu.style.left = pos.x + 'px';
@@ -1080,23 +1093,41 @@ function DrawTool (wrap, setting)
 	};
 
 	/**
-	 * 获取贝塞尔坐标
+	 * 获取控制角点坐标
 	 */
-	function getBezierPos (line, sPos, ePos) {
-		var bezierMap = {}; 
+	function getCtrlPos (line, sPos, ePos) {
+		if (line.type === 'broken' && isTrue(line.auto)) {
+			return getAutoCtrlPos(sPos, ePos);
+		};
+
+		var ctrlMap = {}; 
 		var posMap = divide(sPos, ePos, 3);
-		bezierMap['d1Pos'] = toPos(line.ctrl1);
-		bezierMap['d2Pos'] = toPos(line.ctrl2);
+		ctrlMap['d1Pos'] = toPos(line.ctrl1);
+		ctrlMap['d2Pos'] = toPos(line.ctrl2);
 		if (!isNotEmptyList(line.ctrl1)) {
-			bezierMap['d1Pos'] = posMap('d1');
+			ctrlMap['d1Pos'] = posMap('d1');
 		};
 		if (!isNotEmptyList(line.ctrl2)) {
-			bezierMap['d2Pos'] = posMap('d2');
+			ctrlMap['d2Pos'] = posMap('d2');
 		};
 		return function (val) {
-			return bezierMap[val];
+			return ctrlMap[val];
 		};
 	};
+
+	/**
+	 * 获取控制角点自动化坐标坐标
+	 * 目前只针对折线
+	 */
+	function getAutoCtrlPos (sPos, ePos) {
+		var ctrlMap = {}; 
+		var midY = (toNumber(sPos.y) + toNumber(ePos.y)) / 2;
+		ctrlMap['d1Pos'] = toPos([sPos.x, midY])
+		ctrlMap['d2Pos'] = toPos([ePos.x, midY])
+		return function (val) {
+			return ctrlMap[val];
+		};
+	}
 
 	/**
 	 * 通过线条获取锚点元素
@@ -1143,7 +1174,7 @@ function DrawTool (wrap, setting)
 		var ePos = getAnchorPos(line.endElem);
 		switch (line.type) {
 			case 'bezier':
-				var bezierMap = getBezierPos(line, sPos, ePos);
+				var bezierMap = getCtrlPos(line, sPos, ePos);
 				bezierWrap(
 					_avCtx, 
 					line, 
@@ -1156,8 +1187,36 @@ function DrawTool (wrap, setting)
 			case 'straight':
 				straightWrap(_avCtx, line, sPos, ePos);
 				break;
+			case 'broken':
+				var brokenMap = getCtrlPos(line, sPos, ePos);
+				brokenWrap(
+					_avCtx, 
+					line, 
+					sPos,
+					brokenMap('d1Pos'),
+					brokenMap('d2Pos'), 
+					ePos
+				);
+				break;
 		};
 	};
+
+	/**
+	 * 绘制折线的包裹层
+	 */
+	function brokenWrap(ctx, line, sPos, d1Pos, d2Pos, ePos) {
+		ctx.save();
+	    ctx.beginPath();
+	    ctx.lineCap = 'round';
+		ctx.lineWidth = _wrapLineW;
+	    ctx.strokeStyle = _setting.lineHoverColor;
+	    ctx.moveTo(sPos.x, sPos.y);
+	    ctx.lineTo(d1Pos.x, d1Pos.y);
+	    ctx.lineTo(d2Pos.x, d2Pos.y);
+	    ctx.lineTo(ePos.x, ePos.y);
+	    ctx.stroke();
+		ctx.restore();
+	}
 	
 	/**
 	 * 贝塞尔包裹层
@@ -1171,16 +1230,13 @@ function DrawTool (wrap, setting)
 		var arrowEnd = {};
 		arrowEnd.x = ePos.x + innerK * (d2Pos.x - ePos.x);
 	    arrowEnd.y = ePos.y + innerK * (d2Pos.y - ePos.y);
-
 	    var bezierEnd = {};
 	    bezierEnd.x = isArrow? ePos.x + k * (d2Pos.x - ePos.x) : ePos.x;
 	    bezierEnd.y = isArrow? ePos.y + k * (d2Pos.y - ePos.y) : ePos.y;
-
 	    ctx.save();
 	    ctx.beginPath();
 		ctx.lineCap = 'round';
 		ctx.lineWidth = _wrapLineW;
-		
 	    ctx.strokeStyle = _setting.lineHoverColor;
 	    ctx.moveTo(sPos.x, sPos.y);
 	    ctx.bezierCurveTo(d1Pos.x, d1Pos.y, d2Pos.x, d2Pos.y, bezierEnd.x, bezierEnd.y);
@@ -1217,7 +1273,7 @@ function DrawTool (wrap, setting)
 		var ePos = getAnchorPos(line.endElem);
 		switch (line.type) {
 			case 'bezier':
-				var bezierMap = getBezierPos(line, sPos, ePos);
+				var bezierMap = getCtrlPos(line, sPos, ePos);
 				isPoint = isPointInPathBezier(
 					sPos, 
 					bezierMap('d1Pos'), 
@@ -1229,9 +1285,29 @@ function DrawTool (wrap, setting)
 			case 'straight':
 				isPoint = isPointInPathStraight (sPos, ePos, pos)
 				break;
+			case 'broken':
+				var brokenMap = getCtrlPos(line, sPos, ePos);
+				isPoint = isPointInPathBroken(
+					sPos, 
+					brokenMap('d1Pos'), 
+					brokenMap('d2Pos'), 
+					ePos, 
+					pos
+				);
+				break;
 		};
 		return isPoint;
 	};
+
+	/**
+	 * 判断是否在折线中
+	 */
+	function isPointInPathBroken (sPos, d1Pos, d2Pos, ePos, pos) {
+		return isPointInPathStraight(sPos, d1Pos, pos) || 
+		isPointInPathStraight(d1Pos, d2Pos, pos) || 
+		isPointInPathStraight(d2Pos, ePos, pos);
+	};
+
 	
     /**
 	 * 判断点是否在贝塞尔线中
@@ -1242,7 +1318,6 @@ function DrawTool (wrap, setting)
 		var nodeRad = 0;
 	    var θ1 = atan(( d1Pos.y - sPos.y ) / ( d1Pos.x - sPos.x));
 	    var θ2 = atan(( ePos.y - d2Pos.y ) / ( ePos.x - d2Pos.x));
-
 	    var p1Xd = sPos.x - d * sin(θ1) + dδ * cos(θ1);
 	    var p1Yd = sPos.y + d * cos(θ1) + dδ * sin(θ1);
 	    var p2Xd = d1Pos.x - d * sin(θ1);
@@ -1251,21 +1326,17 @@ function DrawTool (wrap, setting)
 	    var p3Yd = d2Pos.y + d * cos(θ2);
 	    var p4Xd = ePos.x - d * sin(θ2) - dδ * cos(θ2);
 	    var p4Yd = ePos.y + d * cos(θ2) - dδ * sin(θ2);
-		
 		var ld = sqrt(pow((p3Xd - p4Xd), 2) + pow((p3Yd - p4Yd), 2));
 	    var kd = (nodeRad+10) / ld;
 	    var innerK = nodeRad / ld;
-		
 	    var arrowEndX = p4Xd + innerK * (p3Xd - p4Xd);
 	    var arrowEndY = p4Yd + innerK * (p3Yd - p4Yd);
 	    var bezierEndXd = p4Xd + kd * (p3Xd - p4Xd);
 	    var bezierEndYd = p4Yd + kd * (p3Yd - p4Yd);
-		
 	    _avCtx.save();
 	    _avCtx.beginPath();
 	    _avCtx.moveTo(p1Xd, p1Yd);
 	    _avCtx.bezierCurveTo(p2Xd, p2Yd, p3Xd, p3Yd, bezierEndXd, bezierEndYd);
-
 	    var p1Xu = sPos.x + d * sin(θ1) + dδ * cos(θ1);
 	    var p1Yu = sPos.y - d * cos(θ1) + dδ * sin(θ1);
 	    var p2Xu = d1Pos.x + d * sin(θ1);
@@ -1274,23 +1345,17 @@ function DrawTool (wrap, setting)
 	    var p3Yu = d2Pos.y - d * cos(θ2);
 	    var p4Xu = ePos.x + d * sin(θ2) - dδ * cos(θ2);
 	    var p4Yu = ePos.y - d * cos(θ2) - dδ * sin(θ2);
-		
 		var lu = sqrt(pow((p3Xu - p4Xu), 2) + pow((p3Yu - p4Yu), 2));
-
 	    var ku = (nodeRad + 10) / lu;
 	    var innerK = nodeRad / lu;
-
 	    var arrowEndX = p4Xu + innerK * (p3Xu - p4Xu);
 	    var arrowEndY = p4Yu + innerK * (p3Yu - p4Yu);
 	    var bezierEndXu = p4Xu + ku * (p3Xu - p4Xu);
 	    var bezierEndYu = p4Yu + ku * (p3Yu - p4Yu);
-
 	    _avCtx.lineTo(bezierEndXd, bezierEndYd);
 	    _avCtx.lineTo(bezierEndXu, bezierEndYu);
-
 	    _avCtx.lineTo(bezierEndXu, bezierEndYu);
 	    _avCtx.bezierCurveTo(p3Xu, p3Yu, p2Xu, p2Yu, p1Xu, p1Yu);
-
 	    _avCtx.moveTo(p1Xu, p1Yu);
 	    _avCtx.lineTo(p1Xd, p1Yd);
 	    _avCtx.restore();
@@ -1359,19 +1424,17 @@ function DrawTool (wrap, setting)
 	 * 绘制正在生成的线条
 	 */
 	function linkLineProcess (e) {
-		// console.log('linkLineProcess');
 		var sPos = getAnchorPos(_avLine.startElem);
 		var ePos = getTargetPos(_bgCvs, e);
-		straightLineTo(_avCtx, _avLine, sPos, ePos);
+		switchLineTo(_avCtx, _avLine, sPos, ePos);
 	};
 	
 	
 	/**
-	 * 画线
+	 * 画线总函数
 	 */
 	function linkLine (ctx, line) {
 		if (!isDOMElement(line.startElem) || !isDOMElement(line.endElem)) {
-			console.log('寻址');
 			var anchorMap = getAnchorElemByLine(line);
 			line.startElem = anchorMap['startElem'];
 			line.endElem = anchorMap['endElem'];
@@ -1379,9 +1442,16 @@ function DrawTool (wrap, setting)
 		// 解析线
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
+		switchLineTo(ctx, line, sPos, ePos);
+	};
+
+	/**
+	 * 画线分函数
+	 */
+	function switchLineTo (ctx, line, sPos, ePos) {
 		switch (line.type) {
 			case 'bezier':
-				var bezierMap = getBezierPos(line, sPos, ePos);
+				var bezierMap = getCtrlPos(line, sPos, ePos);
 				bezierLineTo(
 					ctx,
 					line,
@@ -1395,8 +1465,16 @@ function DrawTool (wrap, setting)
 			case 'straight':
 				straightLineTo(ctx, line, sPos, ePos);
 				break;
+			case 'broken':
+				var brokenMap = getCtrlPos(line, sPos, ePos);
+				brokenLineTo(ctx, line, 
+					sPos,
+					brokenMap('d1Pos'),
+					brokenMap('d2Pos'),
+					ePos
+				);
 		};
-	};
+	}
 
 	/**
 	 * 画贝塞尔曲线
@@ -1409,11 +1487,9 @@ function DrawTool (wrap, setting)
 		var arrowEnd = {};
 		arrowEnd.x = ePos.x + innerK * (d2Pos.x - ePos.x);
 	    arrowEnd.y = ePos.y + innerK * (d2Pos.y - ePos.y);
-
 	    var bezierEnd = {};
 	    bezierEnd.x = isArrow? ePos.x + k * (d2Pos.x - ePos.x) : ePos.x;
 	    bezierEnd.y = isArrow? ePos.y + k * (d2Pos.y - ePos.y) : ePos.y;
-
 	    ctx.save();
 	    ctx.beginPath();
 	    if (ctx !== _avCtx) {
@@ -1422,11 +1498,9 @@ function DrawTool (wrap, setting)
 	    ctx.moveTo(sPos.x, sPos.y);
 	    ctx.bezierCurveTo(d1Pos.x, d1Pos.y, d2Pos.x, d2Pos.y, bezierEnd.x, bezierEnd.y);
 	    ctx.stroke();
-
 	    ctx.beginPath();
 	    ctx.arc(ePos.x, ePos.y, nodeRad, 0, 2 * Math.PI);
 	    ctx.stroke();
-
 	    isArrow && (styleArrow(ctx, d2Pos, arrowEnd, bezierEnd));
 	    ctx.restore();
 	};
@@ -1463,10 +1537,27 @@ function DrawTool (wrap, setting)
 		ctx.restore();
 	};
 
+	function brokenLineTo (ctx, line, sPos, d1Pos, d2Pos, ePos) {
+		ctx.save();
+	    ctx.beginPath();
+	    if (ctx !== _avCtx) {
+			ctx.strokeStyle = _setting.lineColor;
+		};
+	    ctx.moveTo(sPos.x, sPos.y);
+	    ctx.lineTo(d1Pos.x, d1Pos.y);
+	    ctx.lineTo(d2Pos.x, d2Pos.y);
+	    ctx.lineTo(ePos.x, ePos.y);
+	    ctx.stroke();
+	    (line.style == 'arrow') && (styleArrow(ctx, d2Pos, ePos));
+		ctx.restore();
+	};
+
 	/**
 	 * 画直线箭头
 	 */
 	function styleArrow (ctx, sPos, ePos) {
+		ctx.save();
+	    ctx.beginPath();
 		ctx.translate(ePos.x, ePos.y);
 		ctx.rotate(Math.atan2(ePos.y - sPos.y, ePos.x - sPos.x));
 		ctx.lineTo(-10, 3);
@@ -1486,15 +1577,12 @@ function DrawTool (wrap, setting)
 		node.htmlStr = conf.html;
 		node.nodeid = conf.nodeid || null;
 		node.anchors = conf.anchors;
-
 		var innerNode = node.children[0];
 		innerNode.nodeid = node.nodeid;
 		addClass(innerNode, Cls.inNdJs);
-		
 		_wrap.appendChild(node);
 		var reNode = _nodeStack.push(node);
 		reNode.setAttribute('node-id', reNode.nodeid);
-		
 		var anchorsNode = appendAnchors(node);
 		hideElem(anchorsNode, true);
 		return node;
