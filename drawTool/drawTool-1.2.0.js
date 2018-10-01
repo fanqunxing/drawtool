@@ -1578,11 +1578,11 @@ function DrawTool (wrap, setting)
 		node.nodeid = conf.nodeid || null;
 		node.anchors = conf.anchors;
 		var innerNode = node.children[0];
-		innerNode.nodeid = node.nodeid;
 		addClass(innerNode, Cls.inNdJs);
 		_wrap.appendChild(node);
 		var reNode = _nodeStack.push(node);
 		reNode.setAttribute('node-id', reNode.nodeid);
+		innerNode.nodeid = node.nodeid;
 		var anchorsNode = appendAnchors(node);
 		hideElem(anchorsNode, true);
 		return node;
