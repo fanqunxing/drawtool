@@ -1,0 +1,19 @@
+{
+  "name": "drawtool",
+  "version": "1.2.0",
+  "description": "绘制图的canvas工具",
+  "main": "drawTool-1.2.0.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fwx426328/drawTool.git"
+  },
+  "author": "fwx426328",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fwx426328/drawTool/issues"
+  },
+  "homepage": "https://github.com/fwx426328/drawTool#readme"
+}

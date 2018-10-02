@@ -10,6 +10,8 @@
 
 .drawTool-canvas {
     position: absolute;
+    left: 0;
+    top: 0;
 }
 
 .drawTool-content-root .drawTool-node {
