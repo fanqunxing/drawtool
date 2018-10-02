@@ -708,8 +708,9 @@ function DrawTool (wrap, setting)
 	var _setting = mixin(setting, {
 		lineColor: '#26b7d0',
 		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
+		lineActiveColor: '#2177C7',
 		arrowColor: '#444',
-		lineStyle: 'arrow', // arrow, line
+		lineStyle: 'arrow',
 		type: 'bezier',
 		auto: true
 	});
@@ -1529,7 +1530,9 @@ function DrawTool (wrap, setting)
 	    ctx.beginPath();
 	    if (ctx !== _avCtx) {
 			ctx.strokeStyle = _setting.lineColor;
-		};
+		} else {
+			ctx.strokeStyle = _setting.lineActiveColor;
+		}
 	    ctx.moveTo(sPos.x, sPos.y);
 	    ctx.bezierCurveTo(d1Pos.x, d1Pos.y, d2Pos.x, d2Pos.y, bezierEnd.x, bezierEnd.y);
 	    ctx.stroke();
@@ -1562,7 +1565,9 @@ function DrawTool (wrap, setting)
 	function straightLineTo (ctx, line, sPos, ePos) {
 		if (ctx !== _avCtx) {
 			ctx.strokeStyle = _setting.lineColor;
-		};
+		} else {
+			ctx.strokeStyle = _setting.lineActiveColor;
+		}
 		ctx.save();
 		ctx.beginPath();
 		ctx.moveTo(sPos.x, sPos.y);
@@ -1580,6 +1585,8 @@ function DrawTool (wrap, setting)
 	    ctx.beginPath();
 	    if (ctx !== _avCtx) {
 			ctx.strokeStyle = _setting.lineColor;
+		} else {
+			ctx.strokeStyle = _setting.lineActiveColor;
 		};
 	    ctx.moveTo(sPos.x, sPos.y);
 	    ctx.lineTo(d1Pos.x, d1Pos.y);
@@ -1628,6 +1635,7 @@ function DrawTool (wrap, setting)
 		hideElem(anchorsNode, true);
 		return node;
 	};
+
 	var isListenType = makeMap('deleteLineBefore,deleteLineAfter,linkLineStart,linkLineBefore,linkLineAfter,clickLine', false);
 	this.listen = function () {
 		if (arguments.length === 1 && isObject(arguments[0])) {
