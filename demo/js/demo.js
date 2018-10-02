@@ -15,7 +15,7 @@ function addNode(x, y) {
 	var text = $('#text').val();
 	var option = {
 		pos:{x:x,y:y},
-		html:"<div class='node js-node'>\
+		template:"<div class='node js-node'>\
 				<div class='in " + type + "'>"+ text +"</div>\
 				<button class=\"option\">删除</button>\
 			  </div>",

@@ -497,7 +497,7 @@ nodeproto.fiterData = function() {
 		var left = toNumber(node.style.left);
 		var top = toNumber(node.style.top);
 		var oNode = {
-			html: node.htmlStr.replace(/[\r\n\t]/g, ''),
+			template: node.template,
 			nodeid: node.nodeid,
 			pos: {x: left, y: top},
 			anchors: node.anchors
@@ -606,7 +606,7 @@ lineproto.fiterData = function () {
 			ctrl1: line.ctrl1,
 			ctrl2: line.ctrl2,
 			type: line.type,
-			style: line.style,
+			lineStyle: line.lineStyle,
 			auto: line.auto
 		}
 		data.push(oLine);
@@ -1621,8 +1621,14 @@ function DrawTool (wrap, setting)
 		addClass(node, [Cls.ndCss, Cls.ndJs]);
 		node.style.left = conf.pos.x + 'px';
 		node.style.top = conf.pos.y + 'px';
-		node.innerHTML = conf.html;
-		node.htmlStr = conf.html;
+		if (isDOMElement(conf.template)) {
+			node.appendChild(conf.template);
+			node.template = conf.template.outerHTML;
+		} else {
+			node.innerHTML = conf.template;
+			node.template = conf.template;
+		}
+		
 		node.nodeid = isNaN(conf.nodeid) ? null: conf.nodeid;
 		node.anchors = conf.anchors;
 		var innerNode = node.children[0];
