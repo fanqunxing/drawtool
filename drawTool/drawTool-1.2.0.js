@@ -704,7 +704,7 @@ function DrawTool (wrap, setting)
 	var _ctrlMap = appendBezierCtrls(_wrap);
 	var _avCtrl = null;
 	var _synchronized = false;
-	
+	!isObject(setting) && (setting = {});
 	var _setting = mixin(setting, {
 		lineColor: '#26b7d0',
 		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
@@ -715,10 +715,10 @@ function DrawTool (wrap, setting)
 	});
 	var _listenMap = {
 		clickLine: defaultfn,
-		deleteLineBefore: defaultfn,
+		deleteLineBefore: function deleteLineBefore() {return true;},
 		deleteLineAfter: defaultfn,
 		linkLineStart: defaultfn,
-		linkLineBefore: defaultfn,
+		linkLineBefore: function linkLineBefore() { return true;},
 		linkLineAfter: defaultfn
 	};
 

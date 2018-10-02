@@ -22,7 +22,8 @@ function addNode(x, y) {
 		// html: "<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
 		anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
 	};
-	drawTool.addNode(option);
+	var node = drawTool.addNode(option);
+	console.log(node.nodeid);
 };
 
 
@@ -48,12 +49,12 @@ drawTool.listen({
 // 动态设置线的样式
 // broken bezier straight
 drawTool.listen('linkLineStart', function(line) {
-	// var arrow = $("#arrow").val();
-	// var lineType = $("#lineType").val();
-	// var auto = $("#auto").val();
-	// line.setStyle(arrow);
-	// line.setType(lineType);
-	// line.setAuto(Number(auto));
+	var arrow = $("#arrow").val();
+	var lineType = $("#lineType").val();
+	var auto = $("#auto").val();
+	line.setStyle(arrow);
+	line.setType(lineType);
+	line.setAuto(Number(auto));
 });
 
 
