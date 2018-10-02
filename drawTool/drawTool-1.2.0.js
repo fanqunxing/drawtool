@@ -649,9 +649,9 @@ Line.prototype.setType = function (type) {
 	return this;
 };
 
-Line.prototype.setStyle = function (style) {
-	if (isLineStyle(style)) {
-		this.style = style;
+Line.prototype.setStyle = function (lineStyle) {
+	if (isLineStyle(lineStyle)) {
+		this.lineStyle = lineStyle;
 	};
 	return this;
 };
@@ -1628,14 +1628,16 @@ function DrawTool (wrap, setting)
 		hideElem(anchorsNode, true);
 		return node;
 	};
-
+	var isListenType = makeMap('deleteLineBefore,deleteLineAfter,linkLineStart,linkLineBefore,linkLineAfter,clickLine', false);
 	this.listen = function () {
 		if (arguments.length === 1 && isObject(arguments[0])) {
 			_listenMap = mixin(arguments[0], _listenMap);
 		} else if (arguments.length >= 2 && isFunction(arguments[1])) {
 			var type = arguments[0],
 				fn = arguments[1];
-			_listenMap[type] = fn;
+			if(isListenType(type)){
+				_listenMap[type] = fn;
+			}
 		};
 	};
 	
