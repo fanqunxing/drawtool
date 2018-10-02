@@ -3,15 +3,13 @@ var setting = {
 	lineColor: '#26b7d0',
 	lineHoverColor: '#aaa',
 	arrowColor: '#444',
-	lineStyle: 'arrow' // none
+	lineStyle: 'arrow', // none
+	type: 'broken',
+	auto: false
 }
 
 var drawTool = new DrawTool(canvas, setting);
 
-addNode(20, 20);
-addNode(140, 140);
-addNode(200, 140);
-addNode(140, 200);
 function addNode(x, y) {
 	var type = $("#type").val();
 	var text = $('#text').val();
@@ -30,9 +28,10 @@ function addNode(x, y) {
 
 drawTool.listen({
 	clickLine: function( line ) {
-		console.log( line );
+		console.log(line);
 	},
 	deleteLineBefore: function(line) {
+		console.log(line)
 		return true;
 	},
 	deleteLineAfter: function(line) {
@@ -49,12 +48,12 @@ drawTool.listen({
 // 动态设置线的样式
 // broken bezier straight
 drawTool.listen('linkLineStart', function(line) {
-	var arrow = $("#arrow").val();
-	var lineType = $("#lineType").val();
-	var auto = $("#auto").val();
-	line.setStyle(arrow);
-	line.setType(lineType);
-	line.setAuto(Number(auto));
+	// var arrow = $("#arrow").val();
+	// var lineType = $("#lineType").val();
+	// var auto = $("#auto").val();
+	// line.setStyle(arrow);
+	// line.setType(lineType);
+	// line.setAuto(Number(auto));
 });
 
 

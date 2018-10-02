@@ -625,7 +625,7 @@ lineproto.clear = function () {
  */
 var isLineType = makeMap('broken,bezier,straight', true);
 var isLineStyle = makeMap('arrow,none', true);
-function Line (type, style) {
+function Line () {
 	this.lineid = null;
 	this.startNodeid = null;
 	this.startAnchorid = null;
@@ -635,11 +635,11 @@ function Line (type, style) {
 	this.endElem = null;
 	this.ctrl1 = [];
 	this.ctrl2 = [];
-	this.type = isLineType(type) || 'bezier';
+	this.type = null;
 	// 0 init 1 start 2 end
 	this.status = 0;
-	this.style = isLineStyle(style) || 'none';
-	this.auto = true; // 是否自动判断
+	this.lineStyle = null;
+	this.auto = null; // 是否自动判断
 };
 
 Line.prototype.setType = function (type) {
@@ -710,7 +710,8 @@ function DrawTool (wrap, setting)
 		lineHoverColor: 'rgba(200, 200, 200, 0.4)',
 		arrowColor: '#444',
 		lineStyle: 'arrow', // arrow, line
-		type: 'bezier'
+		type: 'bezier',
+		auto: true
 	});
 	var _listenMap = {
 		clickLine: defaultfn,
@@ -832,7 +833,12 @@ function DrawTool (wrap, setting)
 	};
 
 	function menuDeleteClick () {
+		var isValid =  _listenMap.deleteLineBefore.call(this, _focusLine);
+		if (isFalse(isValid)) {
+			return;
+		};
 		_lineStack.deleteById(_focusLine.lineid);
+		_listenMap.deleteLineAfter.call(this, _focusLine);
 		releaseFocusL();
 		hideElem(_menu);
 		reDrawBgCtx();
@@ -933,9 +939,18 @@ function DrawTool (wrap, setting)
 			_avLine.setStart(anchor);
 			reDrawBgCtx();
 		} else if (_avLine.status === 1) {
+
+			var isValid = _listenMap.linkLineBefore.call(this, _avLine);
+			if (isFalse(isValid)) {
+				return;
+			};
+
 			_avLine.setEnd(anchor);
 			_lineStack.push(_avLine);
 			pushDrawBgCtx(_avLine);
+
+			_listenMap.linkLineAfter.call(this, _avLine);
+
 			_avLine = new Line();
 			clearCanvas(_avCtx, _avCvs);
 		};
@@ -962,6 +977,7 @@ function DrawTool (wrap, setting)
 			_focusLine = focusLine;
 			var pos = getTargetPos(_wrap,  e);
 			yellMenu(focusLine, pos);
+			_listenMap.clickLine.call(this, _focusLine);
 		} else {
 			console.log('点击非线条');
 			releaseFocusL();
@@ -1025,7 +1041,8 @@ function DrawTool (wrap, setting)
 	function yellMenu (line, pos) {
 		var menuBtn = _menu.getElementsByClassName(Cls.menuBtnJs);
 		showElem(menuBtn);
-		switch (line.type) {
+		var type = reSetConf(line, 'type');
+		switch (type) {
 			case 'bezier':
 				break;
 			case 'straight':
@@ -1033,7 +1050,8 @@ function DrawTool (wrap, setting)
 				hideElem(menuEdit);
 				break;
 			case 'broken':
-				if (isTrue(line.auto)) {
+				var isAuto = reSetConf(line, 'auto');
+				if (isTrue(isAuto)) {
 					var menuEdit = _menu.getElementsByClassName(Cls.menuEditCss);
 					hideElem(menuEdit);
 				};
@@ -1042,6 +1060,16 @@ function DrawTool (wrap, setting)
 		showElem(_menu);
 		_menu.style.left = pos.x + 'px';
 		_menu.style.top = pos.y + 'px';
+	};
+
+	/**
+	 * 矫正配置，line上优先，再取全局设置到线上
+	 */
+	function reSetConf (line, prop) {
+		if (!isDef(line[prop])) {
+			line[prop] = _setting[prop];
+		}
+		return line[prop];
 	};
 
 	/**
@@ -1096,7 +1124,9 @@ function DrawTool (wrap, setting)
 	 * 获取控制角点坐标
 	 */
 	function getCtrlPos (line, sPos, ePos) {
-		if (line.type === 'broken' && isTrue(line.auto)) {
+		var type = reSetConf(line, 'type');
+		var auto = reSetConf(line, 'auto');
+		if (type === 'broken' && isTrue(auto)) {
 			return getAutoCtrlPos(sPos, ePos);
 		};
 
@@ -1172,7 +1202,8 @@ function DrawTool (wrap, setting)
 	function drawWrapLine (line) {
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
-		switch (line.type) {
+		var type = reSetConf(line, 'type');
+		switch (type) {
 			case 'bezier':
 				var bezierMap = getCtrlPos(line, sPos, ePos);
 				bezierWrap(
@@ -1223,7 +1254,8 @@ function DrawTool (wrap, setting)
 	 */
 	function bezierWrap (ctx, line, sPos, d1Pos, d2Pos, ePos) {
 		var nodeRad = 0;
-		var isArrow = (_setting.lineStyle === 'arrow');
+		var lineStyle = reSetConf(line, 'lineStyle');
+		var isArrow = (lineStyle === 'arrow');
 		var l = sqrt(pow((d2Pos.x - ePos.x), 2) + pow((d2Pos.y - ePos.y), 2));
 		var k = (nodeRad + 10) / l;
 		var innerK = nodeRad / l;
@@ -1271,7 +1303,8 @@ function DrawTool (wrap, setting)
 		var isPoint = false;
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
-		switch (line.type) {
+		var type = reSetConf(line, 'type');
+		switch (type) {
 			case 'bezier':
 				var bezierMap = getCtrlPos(line, sPos, ePos);
 				isPoint = isPointInPathBezier(
@@ -1449,7 +1482,8 @@ function DrawTool (wrap, setting)
 	 * 画线分函数
 	 */
 	function switchLineTo (ctx, line, sPos, ePos) {
-		switch (line.type) {
+		var type = reSetConf(line, 'type');
+		switch (type) {
 			case 'bezier':
 				var bezierMap = getCtrlPos(line, sPos, ePos);
 				bezierLineTo(
@@ -1480,7 +1514,8 @@ function DrawTool (wrap, setting)
 	 * 画贝塞尔曲线
 	 */
 	function bezierLineTo (ctx, line, sPos, d1Pos, d2Pos, ePos, nodeRad) {
-		var isArrow = (line.style === 'arrow');
+		var lineStyle = reSetConf(line, 'lineStyle');
+		var isArrow = (lineStyle === 'arrow');
 		var l = sqrt(pow((d2Pos.x - ePos.x), 2) + pow((d2Pos.y - ePos.y), 2));
 		var k = (nodeRad + 10) / l;
 		var innerK = nodeRad / l;
@@ -1533,7 +1568,10 @@ function DrawTool (wrap, setting)
 		ctx.moveTo(sPos.x, sPos.y);
 		ctx.lineTo(ePos.x, ePos.y);
 		ctx.stroke();
-		(line.style == 'arrow') && (styleArrow(ctx, sPos, ePos));
+		var lineStyle = reSetConf(line, 'lineStyle');
+		if (lineStyle == 'arrow') {
+			styleArrow(ctx, sPos, ePos);
+		};
 		ctx.restore();
 	};
 
@@ -1548,7 +1586,10 @@ function DrawTool (wrap, setting)
 	    ctx.lineTo(d2Pos.x, d2Pos.y);
 	    ctx.lineTo(ePos.x, ePos.y);
 	    ctx.stroke();
-	    (line.style == 'arrow') && (styleArrow(ctx, d2Pos, ePos));
+	    var lineStyle = reSetConf(line, 'lineStyle');
+		if (lineStyle == 'arrow') {
+			styleArrow(ctx, d2Pos, ePos);
+		};
 		ctx.restore();
 	};
 
