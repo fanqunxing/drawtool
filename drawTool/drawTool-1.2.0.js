@@ -1575,7 +1575,7 @@ function DrawTool (wrap, setting)
 		node.style.top = conf.pos.y + 'px';
 		node.innerHTML = conf.html;
 		node.htmlStr = conf.html;
-		node.nodeid = conf.nodeid || null;
+		node.nodeid = isNaN(conf.nodeid) ? null: conf.nodeid;
 		node.anchors = conf.anchors;
 		var innerNode = node.children[0];
 		addClass(innerNode, Cls.inNdJs);
