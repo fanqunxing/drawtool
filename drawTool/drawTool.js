@@ -327,8 +327,8 @@ function clearCanvas (ctx , canvas) {
 	ctx.clearRect(0, 0, getElemWidth(canvas), getElemHeight(canvas));
 };
 
-function getMousePos (e) {
-	// var e = window.event || evt;
+function getMousePos (evt) {
+	var e = window.event || evt;
     var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
     var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
     var x = e.pageX || e.clientX + scrollX;
@@ -858,6 +858,12 @@ function DrawTool (wrap, setting)
 		e.preventDefault();
 	};
 
+
+	function dragstart (evt) {
+		var e = window.event || evt;
+		e.preventDefault();
+	};
+
 	function ctrlMousedown (e) {
 		_avCtrl = e.target;
 		_avCtrl.relX = e.clientX - _avCtrl.offsetLeft;
@@ -1097,6 +1103,8 @@ function DrawTool (wrap, setting)
 	Event.on(_wrap, 'mousemove', aopWrapMousemove);
 	
 	Event.on(_wrap, 'contextmenu', contextmenu);
+
+	Event.on(_wrap, 'dragstart', dragstart);
 	
 	/**
 	 * 释放选中的线条
@@ -1778,6 +1786,30 @@ function DrawTool (wrap, setting)
 		if (isDef(disabled)) {
 			_isDisabled = Boolean(disabled);
 		}
+	};
+
+	this.getImage = function () {
+		var image = new Image();
+		var nodeArr = _wrap.getElementsByClassName(Cls.ndJs);
+		slice(nodeArr).forEach(function(node) {
+			var imgs = node.getElementsByTagName('img');
+			slice(imgs).forEach(function (img) {
+				if (isDOMElement(img)) {
+					var left = toNumber(node.style.left);
+					var top = toNumber(node.style.top);
+					_bgCtx.drawImage(img, left, top, img.width, img.height);
+				}
+			});
+		});
+		image.src = _bgCvs.toDataURL("image/png");
+		var eleLink = document.createElement('a');
+        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
+        eleLink.style.display = 'none';
+		image.onload = function(){
+	        eleLink.href = _bgCvs.toDataURL();
+	        eleLink.click();
+		}
+		return image;
 	}
 };
 
