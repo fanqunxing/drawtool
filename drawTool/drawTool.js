@@ -1788,32 +1788,58 @@ function DrawTool (wrap, setting)
 		}
 	};
 
-	this.download = function () {
-		var image = this.getImage();
-		var eleLink = document.createElement('a');
-        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
-        eleLink.style.display = 'none';
-		image.onload = function(){
-	        eleLink.href = _bgCvs.toDataURL();
-	        eleLink.click();
-		}
-	};
-
-	this.getImage = function () {
+	this.getImage = function (fn, deep) {
 		var image = new Image();
+		var tempCvs = document.createElement('canvas');
+		var tempCtx = tempCvs.getContext('2d');
+		tempCvs.width = _wrap.offsetWidth;
+		tempCvs.height = _wrap.offsetHeight;
 		var nodeArr = _wrap.getElementsByClassName(Cls.ndJs);
 		slice(nodeArr).forEach(function(node) {
 			var imgs = node.getElementsByTagName('img');
 			slice(imgs).forEach(function (img) {
 				if (isDOMElement(img)) {
-					var left = toNumber(node.style.left);
-					var top = toNumber(node.style.top);
-					_bgCtx.drawImage(img, left, top, img.width, img.height);
+					var imgRect = img.getBoundingClientRect();
+					var wpRect = _wrap.getBoundingClientRect()
+					_bgCtx.drawImage(img, imgRect.x - wpRect.x, imgRect.y - wpRect.y, imgRect.width, imgRect.height);
 				}
 			});
 		});
-		image.src = _bgCvs.toDataURL("image/png");
-		return image;
+		
+		var image1 = new Image();
+        var cloneDom = _wrap.cloneNode(true);
+        cloneDom.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        cloneDom.classList.remove('outline');
+        var styles = document.getElementsByTagName('style');
+        var styleStr = '';
+        slice(styles).forEach(function(style) {
+        	if (isDOMElement(style)) {
+        		styleStr += style.outerHTML.replace(/#/g, '%23').replace(/\n/g, '%0A');
+        	}
+        });
+
+		image1.src = 'data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="' + _wrap.offsetWidth + '" height="' + _wrap.offsetHeight + '"><foreignObject x="0" y="0" width="100%" height="100%">'+ 
+            new XMLSerializer().serializeToString(cloneDom).replace(/#/g, '%23').replace(/\n/g, '%0A') +
+            styleStr +
+         '</foreignObject></svg>';
+        
+	    image1.onload = function () {
+	     	tempCtx.drawImage(image1, 0, 0, _wrap.offsetWidth, _wrap.offsetHeight);
+	     	image.src = _bgCvs.toDataURL("image/png");
+	     	if (isFunction(fn)) {
+	     		fn(image);
+	     	}
+	     	if (isTrue(deep)) {
+	     		image.onload = function () {
+					tempCtx.drawImage(image, 0, 0, _wrap.offsetWidth, _wrap.offsetHeight);
+					var eleLink = document.createElement('a');
+			        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
+			        eleLink.style.display = 'none';
+			        eleLink.href = tempCvs.toDataURL("image/png");
+			        eleLink.click();
+				};
+	     	}
+	    };
 	}
 };
 
