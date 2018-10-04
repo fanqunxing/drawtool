@@ -20,12 +20,8 @@
     cursor: move;
 }
 
-.drawTool-content-root .drawTool-node:hover .drawTool-anchor{
-    visibility: visible;
-}
 .drawTool-anchor{
 	display: inline-block;
-    /*visibility: hidden;*/
     position: absolute;
     width: 10px;
     height: 10px;

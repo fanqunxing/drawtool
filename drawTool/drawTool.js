@@ -267,7 +267,7 @@ Event.on = function (elem, type, fn) {
 
 Event.delegate = function (pElem, className, type, fn ) {
 	Event.on(pElem, type, function (e) {
-		var e = e || window.event;
+		var e = window.event || e;
 		var target = e.target || e.srcElement;
 		var pTarget = findParent(pElem, target, className);
 		if (pTarget) {
@@ -327,8 +327,8 @@ function clearCanvas (ctx , canvas) {
 	ctx.clearRect(0, 0, getElemWidth(canvas), getElemHeight(canvas));
 };
 
-function getMousePos (evt) {
-	var e = window.event || evt;
+function getMousePos (e) {
+	// var e = window.event || evt;
     var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
     var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
     var x = e.pageX || e.clientX + scrollX;
@@ -688,6 +688,7 @@ function DrawTool (wrap, setting)
 		return;
 	};
 	encryptCls(Cls);
+	var _isDisabled = false;
 	var _wrap = wrap;
 	var _avCvs = addCanvas(_wrap);
 	var _avCtx = _avCvs.getContext('2d');
@@ -733,7 +734,11 @@ function DrawTool (wrap, setting)
 			if (_avLine.status === 0)
 				Event.on( _wrap, 'mousemove', moveLinkLine);
 		},
-		fun: anchorClick,
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				anchorClick(e);
+			}
+		}, 
 		after: function () {
 			if (_avLine.status === 0) 
 				Event.off( _wrap, 'mousemove', moveLinkLine);
@@ -741,30 +746,78 @@ function DrawTool (wrap, setting)
 	});
 
 	var aopNodeMousedown = aop({
-		fun: nodeMousedown,
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				nodeMousedown(e);
+			}
+		},
 		after: function () {
 			Event.on(_wrap, 'mousemove', nodeMousemove);
 		}
 	});
 
 	var aopMouseup = aop({
-		fun: mouseup,
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				mouseup(e);
+			}
+		},
 		after: function () {
 			Event.off(_wrap, 'mousemove', nodeMousemove);
 		}
 	});
 
 	var aopCtrlMouseup = aop({
-		fun: ctrlMouseup,
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				ctrlMouseup(e);
+			}
+		},
 		after: function () {
 			Event.off(_wrap, 'mousemove', ctrlMousemove);
 		}
 	});
 
 	var aopCtrlMousedown = aop({
-		fun: ctrlMousedown,
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				ctrlMousedown(e);
+			}
+		},
 		after: function () {
 			Event.on(_wrap, 'mousemove', ctrlMousemove);
+		}
+	});
+
+	var aopLineClick = aop({
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				lineClick(e);
+			}
+		}
+	});
+
+	var aopWrapMousemove = aop({
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				wrapMousemove(e);
+			}
+		}
+	});
+
+	var aopNodeMouseover = aop({
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				nodeMouseover(e);
+			}
+		}
+	});
+
+	var aopNodeMouseout = aop({
+		fun: function (e) {
+			if (isFalse(_isDisabled)) {
+				nodeMouseout(e);
+			}
 		}
 	});
 
@@ -775,6 +828,19 @@ function DrawTool (wrap, setting)
 		var anchorsNode = node.getElementsByClassName(Cls.anchorJs);
 		showElem(anchorsNode, true);
 	};
+
+	function anchorsNodeMouseover (e) {
+		var node = findParent(_wrap, e.target, Cls.ndJs);
+		clearTimeout(node.hideTimer);
+	};
+
+	function anchorsMouseout (e) {
+		var node = findParent(_wrap, e.target, Cls.ndJs);
+		var anchorsNode = node.getElementsByClassName(Cls.anchorJs);
+		node.hideTimer = setTimeout(function() {
+			hideElem(anchorsNode, true);
+		}, 300);
+	}
 	
 	function nodeMouseout (e) {
 		var node = findParent(_wrap, e.target, Cls.ndJs);
@@ -784,7 +850,8 @@ function DrawTool (wrap, setting)
 		}, 300);
 	};
 	
-	function contextmenu (e) {
+	function contextmenu (evt) {
+		var e = window.event || evt;
 		_avLine = new Line();
 		releaseFocusL();
 		reDrawAvCtx();
@@ -960,8 +1027,8 @@ function DrawTool (wrap, setting)
 	/**
 	 * 当处于连线状态，触发活跃层刷新即可
 	 */
-	function moveLinkLine () {
-		reDrawAvCtx();
+	function moveLinkLine (e) {
+		reDrawAvCtx(e);
 	};
 
 	/**
@@ -980,7 +1047,6 @@ function DrawTool (wrap, setting)
 			yellMenu(focusLine, pos);
 			_listenMap.clickLine.call(this, _focusLine);
 		} else {
-			console.log('点击非线条');
 			releaseFocusL();
 			hideElem(_menu);
 		};
@@ -1008,9 +1074,13 @@ function DrawTool (wrap, setting)
 
 	Event.delegate(_wrap, Cls.inNdJs, 'mouseup', aopMouseup);
 	
-	Event.delegate(_wrap, Cls.inNdJs, 'mouseover', nodeMouseover);
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseover', aopNodeMouseover);
+
+	Event.delegate(_wrap, Cls.anchorJs, 'mouseover', anchorsNodeMouseover);
+
+	Event.delegate(_wrap, Cls.anchorJs, 'mouseout', anchorsMouseout);
 	
-	Event.delegate(_wrap, Cls.inNdJs, 'mouseout', nodeMouseout);
+	Event.delegate(_wrap, Cls.inNdJs, 'mouseout', aopNodeMouseout);
 	
 	Event.delegate(_wrap, Cls.anchorJs, 'click', aopAnchorClick);
 
@@ -1022,9 +1092,9 @@ function DrawTool (wrap, setting)
 
 	Event.delegate(_wrap, Cls.ctrlJs, 'mouseup', aopCtrlMouseup);
 
-	Event.on(_wrap, 'click', lineClick);
+	Event.on(_wrap, 'click', aopLineClick);
 
-	Event.on(_wrap, 'mousemove', wrapMousemove);
+	Event.on(_wrap, 'mousemove', aopWrapMousemove);
 	
 	Event.on(_wrap, 'contextmenu', contextmenu);
 	
@@ -1435,10 +1505,10 @@ function DrawTool (wrap, setting)
 	/**
 	 * 重绘活跃层
 	 */
-	function reDrawAvCtx () {
+	function reDrawAvCtx (e) {
 		clearCanvas(_avCtx, _avCvs);
 		if (_avLine.status !== 0) {
-			linkLineProcess();
+			linkLineProcess(e);
 		};
 		_avLineStack.forEach(function (line) {
 			linkLine(_avCtx, line);
@@ -1703,6 +1773,12 @@ function DrawTool (wrap, setting)
 		_lineStack.addAll(lineStack);
 		reDrawBgCtx();
 	};
+
+	this.setDisabled = function (disabled) {
+		if (isDef(disabled)) {
+			_isDisabled = Boolean(disabled);
+		}
+	}
 };
 
 
