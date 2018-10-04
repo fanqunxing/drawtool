@@ -1788,6 +1788,17 @@ function DrawTool (wrap, setting)
 		}
 	};
 
+	this.download = function () {
+		var image = this.getImage();
+		var eleLink = document.createElement('a');
+        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
+        eleLink.style.display = 'none';
+		image.onload = function(){
+	        eleLink.href = _bgCvs.toDataURL();
+	        eleLink.click();
+		}
+	};
+
 	this.getImage = function () {
 		var image = new Image();
 		var nodeArr = _wrap.getElementsByClassName(Cls.ndJs);
@@ -1802,13 +1813,6 @@ function DrawTool (wrap, setting)
 			});
 		});
 		image.src = _bgCvs.toDataURL("image/png");
-		var eleLink = document.createElement('a');
-        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
-        eleLink.style.display = 'none';
-		image.onload = function(){
-	        eleLink.href = _bgCvs.toDataURL();
-	        eleLink.click();
-		}
 		return image;
 	}
 };

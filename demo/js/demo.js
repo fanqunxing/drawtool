@@ -84,7 +84,9 @@ function clearMap() {
 };
 
 function getImage() {
-	var img = drawTool.getImage();
+	var img = drawTool.download();
+	console.log(img);
+	// body.appendChild(img);
 }
 
 $("#canvas").delegate('.js-node', 'mousemove', function(e) {
