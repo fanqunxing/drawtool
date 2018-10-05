@@ -21,8 +21,6 @@ function addNode(x, y) {
 			  	</div>`,
 			  // <div class='in " + type + "'>"+ text +"</div>\
 		// html: "<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
-				// 
-
 		anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
 	};
 	var node = drawtool.addNode(option);
@@ -31,7 +29,7 @@ function addNode(x, y) {
 
 
 drawtool.listen({
-	clickLine: function( line ) {
+	clickLine: function(line) {
 		console.log(line);
 	},
 	deleteLineBefore: function(line) {
