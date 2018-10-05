@@ -21,7 +21,6 @@ button, input, select{
 #canvas{
 	width: 800px;
 	height: 400px;
-	border: solid 1px red;
 	margin: auto;
 	background: #fafafa;
 }
@@ -30,7 +29,6 @@ button, input, select{
 	height: 40px;
 	text-align: center;
 	line-height: 40px;
-	/*cursor: pointer;*/
 	border-radius: 50%;
 }
 .in{

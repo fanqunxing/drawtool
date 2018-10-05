@@ -16,11 +16,7 @@ function addNode(x, y) {
 	var option = {
 		pos:{x:x,y:y},
 		template:`<div class='node js-node'>
-					<div class='in'>
-						3333
-						<img src=\"img/car.png\">
-						<div class='in car'><img src=""></div>
-					</div>
+					<div class='in ${type}'>${text}</div>
 					<button class=\"option\">删除</button>
 			  	</div>`,
 			  // <div class='in " + type + "'>"+ text +"</div>\
