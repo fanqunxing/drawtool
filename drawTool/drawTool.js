@@ -672,7 +672,7 @@ lineproto.fiterData = function () {
 			endAnchorid: line.endAnchorid,
 			ctrl1: line.ctrl1,
 			ctrl2: line.ctrl2,
-			type: line.type,
+			lineType: line.lineType,
 			lineStyle: line.lineStyle,
 			auto: line.auto
 		}
@@ -702,16 +702,16 @@ function Line () {
 	this.endElem = null;
 	this.ctrl1 = [];
 	this.ctrl2 = [];
-	this.type = null;
+	this.lineType = null;
 	// 0 init 1 start 2 end
 	this.status = 0;
 	this.lineStyle = null;
 	this.auto = null; // 是否自动判断
 };
 
-Line.prototype.setType = function (type) {
-	if (isLineType(type)) {
-		this.type = type;
+Line.prototype.setType = function (lineType) {
+	if (isLineType(lineType)) {
+		this.lineType = lineType;
 	};
 	return this;
 };
@@ -779,7 +779,7 @@ function DrawTool (wrap, setting)
 		lineActiveColor: '#2177C7',
 		arrowColor: '#444',
 		lineStyle: 'arrow',
-		type: 'bezier',
+		lineType: 'bezier',
 		auto: true
 	});
 	var _listenMap = {
@@ -1187,8 +1187,8 @@ function DrawTool (wrap, setting)
 	function yellMenu (line, pos) {
 		var menuBtn = _menu.getElementsByClassName(Cls.menuBtnJs);
 		showElem(menuBtn);
-		var type = reSetConf(line, 'type');
-		switch (type) {
+		var lineType = reSetConf(line, 'lineType');
+		switch (lineType) {
 			case 'bezier':
 				break;
 			case 'straight':
@@ -1270,9 +1270,9 @@ function DrawTool (wrap, setting)
 	 * 获取控制角点坐标
 	 */
 	function getCtrlPos (line, sPos, ePos) {
-		var type = reSetConf(line, 'type');
+		var lineType = reSetConf(line, 'lineType');
 		var auto = reSetConf(line, 'auto');
-		if (type === 'broken' && isTrue(auto)) {
+		if (lineType === 'broken' && isTrue(auto)) {
 			return getAutoCtrlPos(sPos, ePos);
 		};
 
@@ -1348,8 +1348,8 @@ function DrawTool (wrap, setting)
 	function drawWrapLine (line) {
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
-		var type = reSetConf(line, 'type');
-		switch (type) {
+		var lineType = reSetConf(line, 'lineType');
+		switch (lineType) {
 			case 'bezier':
 				var bezierMap = getCtrlPos(line, sPos, ePos);
 				bezierWrap(
@@ -1449,8 +1449,8 @@ function DrawTool (wrap, setting)
 		var isPoint = false;
 		var sPos = getAnchorPos(line.startElem);
 		var ePos = getAnchorPos(line.endElem);
-		var type = reSetConf(line, 'type');
-		switch (type) {
+		var lineType = reSetConf(line, 'lineType');
+		switch (lineType) {
 			case 'bezier':
 				var bezierMap = getCtrlPos(line, sPos, ePos);
 				isPoint = isPointInPathBezier(
@@ -1628,8 +1628,8 @@ function DrawTool (wrap, setting)
 	 * 画线分函数
 	 */
 	function switchLineTo (ctx, line, sPos, ePos) {
-		var type = reSetConf(line, 'type');
-		switch (type) {
+		var lineType = reSetConf(line, 'lineType');
+		switch (lineType) {
 			case 'bezier':
 				var bezierMap = getCtrlPos(line, sPos, ePos);
 				bezierLineTo(
