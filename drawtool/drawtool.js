@@ -2,7 +2,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   typeof define === 'function' && define.cmd ? define(factory) :
-  (global.DrawTool = factory());
+  (global.Drawtool = factory());
 })(this, function () { 'use strict';
 
 var version = '1.2.0';
@@ -188,11 +188,11 @@ function parsePos(pos) {
 };
 
 function error(msg) {
-  throw new Error('drawTool.js error: ' + msg);
+  throw new Error('drawtool.js error: ' + msg);
 };
 
 function warn(msg) {
-  console.error('drawTool.js warn: ' + msg);
+  console.error('drawtool.js warn: ' + msg);
 };
 
 function isDOMElement(obj) {
@@ -399,29 +399,29 @@ Event.off = function (elem, type, fn) {
  * class常量
  */
 var Cls = {
-  showCss: 'drawTool-show',
-  hideCss: 'drawTool-hide',
-  showVisCss: 'drawTool-visibility-show',
-  hideVisCss: 'drawTool-visibility-hide',
-  rootCss: 'drawTool-content-root',
-  ndCss: 'drawTool-node',
-  ndJs: 'js-drawTool-node',
-  inNdJs: 'js-drawTool-inner-node',
-  anchorCss: 'drawTool-anchor',
-  anchorJs: 'js-drawTool-anchor',
-  menuCss: 'drawTool-operate',
-  menuBtnCss: 'drawTool-operate-btn',
-  menuBtnJs: 'js-drawTool-operate-btn',
-  menuDeleteCss: 'drawTool-operate-delete',
-  menuDeleteJs: 'js-drawTool-operate-delete',
-  menuEditJs: 'js-drawTool-operate-edit',
-  menuEditCss: 'drawTool-operate-edit',
-  controller: 'drawTool-controller',
-  ctrlli: 'drawTool-controller-li',
-  ctrlJs: 'js-drawTool-controller-li',
-  cvs: 'drawTool-canvas',
-  bgCvs: 'drawTool-background-canvas',
-  avCvs: 'drawTool-active-canvas'
+  showCss: 'drawtool-show',
+  hideCss: 'drawtool-hide',
+  showVisCss: 'drawtool-visibility-show',
+  hideVisCss: 'drawtool-visibility-hide',
+  rootCss: 'drawtool-content-root',
+  ndCss: 'drawtool-node',
+  ndJs: 'js-drawtool-node',
+  inNdJs: 'js-drawtool-inner-node',
+  anchorCss: 'drawtool-anchor',
+  anchorJs: 'js-drawtool-anchor',
+  menuCss: 'drawtool-operate',
+  menuBtnCss: 'drawtool-operate-btn',
+  menuBtnJs: 'js-drawtool-operate-btn',
+  menuDeleteCss: 'drawtool-operate-delete',
+  menuDeleteJs: 'js-drawtool-operate-delete',
+  menuEditJs: 'js-drawtool-operate-edit',
+  menuEditCss: 'drawtool-operate-edit',
+  controller: 'drawtool-controller',
+  ctrlli: 'drawtool-controller-li',
+  ctrlJs: 'js-drawtool-controller-li',
+  cvs: 'drawtool-canvas',
+  bgCvs: 'drawtool-background-canvas',
+  avCvs: 'drawtool-active-canvas'
 };
 
 /**
@@ -864,9 +864,9 @@ Line.prototype = {
 
 
 /**
- * DrawTool class
+ * Drawtool class
  */
-function DrawTool(wrap, setting) {
+function Drawtool(wrap, setting) {
   if (!isDOMElement(wrap)) {
     error(wrap + ' is not dom');
     return;
@@ -2118,8 +2118,8 @@ function DrawTool(wrap, setting) {
 };
 
 
-DrawTool.prototype.version = version;
+Drawtool.prototype.version = version;
 
-return DrawTool;
+return Drawtool;
 
 });

@@ -8,7 +8,7 @@ var setting = {
 	auto: false
 }
 
-var drawTool = new DrawTool(canvas, setting);
+var drawtool = new Drawtool(canvas, setting);
 
 function addNode(x, y) {
 	var type = $("#type").val();
@@ -25,12 +25,12 @@ function addNode(x, y) {
 
 		anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
 	};
-	var node = drawTool.addNode(option);
+	var node = drawtool.addNode(option);
 	console.log(node.nodeid);
 };
 
 
-drawTool.listen({
+drawtool.listen({
 	clickLine: function( line ) {
 		console.log(line);
 	},
@@ -51,7 +51,7 @@ drawTool.listen({
 
 // 动态设置线的样式
 // broken bezier straight
-drawTool.listen('linkLineStart', function(line) {
+drawtool.listen('linkLineStart', function(line) {
 	var arrow = $("#arrow").val();
 	var lineType = $("#lineType").val();
 	var auto = $("#auto").val();
@@ -62,9 +62,9 @@ drawTool.listen('linkLineStart', function(line) {
 
 
 function save() {
-	var lineArr = drawTool.getAllLines();
-	var nodeArr = drawTool.getAllNodes();
-	var nodeInfoArr = drawTool.getAllNodesInfo();
+	var lineArr = drawtool.getAllLines();
+	var nodeArr = drawtool.getAllNodes();
+	var nodeInfoArr = drawtool.getAllNodesInfo();
 	console.log(lineArr);
 	console.log(nodeArr);
 	console.log(nodeInfoArr);
@@ -76,17 +76,17 @@ init();
 function init() {
 	var lineArr = JSON.parse(localStorage.getItem('lineArr'));
 	var nodeArr = JSON.parse(localStorage.getItem('nodeArr'));
-	drawTool.init(nodeArr, lineArr);
+	drawtool.init(nodeArr, lineArr);
 };
 
 
 
 function clearMap() {
-	drawTool.clear();
+	drawtool.clear();
 };
 
 function getImage() {
-	drawTool.getImage(function(img) {
+	drawtool.getImage(function(img) {
 		console.log(img)
 	}, true);
 	// body.appendChild(img)
@@ -111,7 +111,7 @@ $("#canvas").delegate('.js-node', 'mouseleave', function() {
 $("#canvas").delegate('.option', 'click', function() {
 	console.log('option');
 	var nodeid = $(this).closest('.js-node').get(0).nodeid;
-	drawTool.deleteNodeById(nodeid);
+	drawtool.deleteNodeById(nodeid);
 });
 
 

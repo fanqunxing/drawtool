@@ -1,97 +1,93 @@
-.drawTool-content-root,
-.drawTool-content-root *{
-	box-sizing: border-box;
-	margin: 0px;
-	padding: 0px;
+.drawtool-content-root {
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  box-sizing: border-box;
+  margin: 0px;
+  padding: 0px;
 }
-
-.drawTool-content-root{
-	position: relative;
-    -webkit-user-select:none; 
-    -moz-user-select:none; 
-    -ms-user-select:none; 
-    user-select:none;
+.drawtool-content-root * {
+  box-sizing: border-box;
+  margin: 0px;
+  padding: 0px;
 }
-
-.drawTool-canvas {
-    position: absolute;
-    left: 0;
-    top: 0;
+.drawtool-content-root .drawtool-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
-
-.drawTool-content-root .drawTool-node {
-	display: inline-block;
-	position: absolute;
-    cursor: move;
+.drawtool-content-root .drawtool-node {
+  display: inline-block;
+  position: absolute;
+  cursor: move;
 }
-
-.drawTool-anchor{
-	display: inline-block;
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border: solid 1px #4c3f3f;
-    border-radius: 50%;
-    cursor: pointer;
+.drawtool-content-root .drawtool-anchor {
+  display: inline-block;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: solid 1px #4c3f3f;
+  border-radius: 50%;
+  cursor: pointer;
 }
-.drawTool-anchor:hover{
-    background: #999;
+.drawtool-content-root .drawtool-anchor:hover {
+  background: #999;
 }
-
-.drawTool-operate{
-	position: absolute;
-	left: 0px;
-	top: 0px;
+.drawtool-content-root .drawtool-operate {
+  position: absolute;
+  left: 0px;
+  top: 0px;
 }
-.drawTool-operate-btn{
-	display: inline-block;
-    line-height: 26px;
-    font-size: 16px;
-    width: 26px;
-    height: 26px;
-    background: #c8d9da;
-    border-radius: 50%;
-    text-align: center;
-    cursor: pointer;
+.drawtool-content-root .drawtool-operate-btn {
+  display: inline-block;
+  line-height: 26px;
+  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  background: #c8d9da;
+  border-radius: 50%;
+  text-align: center;
+  cursor: pointer;
 }
-.drawTool-operate-btn i{
-    display: block;
-    width: 100%;
-    height: 26px;
-    background-position: center;
-    background-size: 65%;
-    background-repeat: no-repeat;
+.drawtool-content-root .drawtool-operate-btn i {
+  display: block;
+  width: 100%;
+  height: 26px;
+  background-position: center;
+  background-size: 65%;
+  background-repeat: no-repeat;
 }
-.drawTool-operate-delete i{
-    background-image: url(img/delete.png);
+.drawtool-content-root .drawtool-operate-delete i {
+  background-image: url(img/delete.png);
 }
-.drawTool-operate-edit i{
-    background-image: url(img/setting.png);
+.drawtool-content-root .drawtool-operate-edit i {
+  background-image: url(img/setting.png);
 }
-
-.drawTool-show{
-	display: inline-block;
-	z-index: 999999;
+.drawtool-content-root .drawtool-show {
+  display: inline-block;
+  z-index: 999999;
 }
-.drawTool-hide{
-	display: none;
+.drawtool-content-root .drawtool-hide {
+  display: none;
 }
-.drawTool-visibility-show {
-	visibility: visible;
+.drawtool-content-root .drawtool-visibility-show {
+  visibility: visible;
 }
-.drawTool-visibility-hide {
-	visibility: hidden;
+.drawtool-content-root .drawtool-visibility-hide {
+  visibility: hidden;
 }
-.drawTool-controller-li{
-	display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    line-height: 20px;
-    text-align: center;
-    cursor: move;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    background: #26b7d0;
+.drawtool-content-root .drawtool-controller-li {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  line-height: 20px;
+  text-align: center;
+  cursor: move;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background: #26b7d0;
 }
