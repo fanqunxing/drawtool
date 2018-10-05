@@ -1253,7 +1253,7 @@ function DrawTool(wrap, setting) {
       reDrawBgCtx();
       reDrawAvCtx();
       _synchronized = false;
-      console.log('投放');
+      // console.log('投放');
     };
   };
 
@@ -1302,7 +1302,7 @@ function DrawTool(wrap, setting) {
     };
     var focusLine = getFocusLine(e);
     if (isDef(focusLine)) {
-      console.log('点击线条');
+      // console.log('点击线条');
       _focusLine = focusLine;
       var pos = getTargetPos(_wrap, e);
       yellMenu(focusLine, pos);
