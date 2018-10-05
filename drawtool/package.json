@@ -2,7 +2,7 @@
   "name": "drawtool",
   "version": "1.2.4",
   "description": "绘制图的canvas工具",
-  "main": "drawTool.js",
+  "main": "drawTool.min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
