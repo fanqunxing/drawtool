@@ -161,6 +161,10 @@ function error (msg) {
 	throw new Error('drawTool.js error: ' + msg);
 };
 
+function warn (msg) {
+	console.error('drawTool.js warn: ' + msg);
+};
+
 function isDOMElement (obj) {
 	return !!(obj && obj.nodeType);
 };
@@ -250,6 +254,41 @@ function hideElem (elem, shallow) {
 	return elem;
 };
 
+function httpGet (url, succfn, errorfn) {
+	var xhr = new XMLHttpRequest(); 
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        succfn(xhr.status, xhr.responseText);
+      } else if (xhr.readyState == 4 ) {
+      	errorfn(xhr.status, xhr.responseText);
+      }
+    };
+	xhr.send();
+};
+
+function getLinkStyle (fn) {
+	var links = document.getElementsByTagName('link');
+	var linkArr = slice(links);
+	var styles = [];
+	while (linkArr.length) {
+		var link = linkArr.pop();
+		(function (len) {
+			httpGet( link.href,
+				function (status, data) {
+					var style = document.createElement('style');
+					style.innerHTML = data;
+					styles.push(style);
+					!len && fn(styles);
+				},
+				function (status, data) {
+					warn('get style fail , please check =>' + link.href);
+					!len && fn(styles);
+				}
+			);
+		})(linkArr.length);
+	}
+};
 
 var Event = new Object();
 Event.on = function (elem, type, fn) {
@@ -313,6 +352,34 @@ var Cls = {
 	cvs: 'drawTool-canvas',
 	bgCvs: 'drawTool-background-canvas',
 	avCvs: 'drawTool-active-canvas'
+};
+
+function mergeStyle (styles) {
+	var styleStr = '';
+	var headStyles = document.getElementsByTagName('style');
+	styles = styles.concat(slice(headStyles));
+    styles.forEach(function(style) {
+    	if (isDOMElement(style)) {
+    		styleStr += style.outerHTML.replace(/#/g, '%23').replace(/\n/g, '%0A');
+    	}
+    });
+    return styleStr;
+};
+
+function createSvg (elem, style, targetSize) {
+	var cloneDom = elem.cloneNode(true)
+	cloneDom.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    cloneDom.classList.remove('outline');
+	var svgStr = 
+		'data:image/svg+xml;charset=utf-8,\
+			<svg xmlns="http://www.w3.org/2000/svg" width="' 
+				+ targetSize.width + '" height="' + targetSize.height + '">\
+				<foreignObject x="0" y="0" width="100%" height="100%">'
+				+ new XMLSerializer().serializeToString(cloneDom).replace(/#/g, '%23').replace(/\n/g, '%0A') 
+				+ style 
+				+'</foreignObject>\
+			</svg>';
+	return svgStr;
 };
 
 function addCanvas (elem) {
@@ -1693,7 +1760,19 @@ function DrawTool (wrap, setting)
 		ctx.fill();
 	};
 
-	
+	function drawImg2bgCtx (collection) {
+		slice(collection).forEach(function(node) {
+			var imgs = node.getElementsByTagName('img');
+			slice(imgs).forEach(function (img) {
+				if (isDOMElement(img)) {
+					var imgRect = img.getBoundingClientRect();
+					var wpRect = _wrap.getBoundingClientRect()
+					_bgCtx.drawImage(img, imgRect.x - wpRect.x, imgRect.y - wpRect.y, imgRect.width, imgRect.height);
+				}
+			});
+		});
+	};
+
 	this.addNode = function (conf) {
 		var node = document.createElement('div');
 		addClass(node, [Cls.ndCss, Cls.ndJs]);
@@ -1788,58 +1867,41 @@ function DrawTool (wrap, setting)
 		}
 	};
 
-	this.getImage = function (fn, deep) {
-		var image = new Image();
-		var tempCvs = document.createElement('canvas');
-		var tempCtx = tempCvs.getContext('2d');
-		tempCvs.width = _wrap.offsetWidth;
-		tempCvs.height = _wrap.offsetHeight;
-		var nodeArr = _wrap.getElementsByClassName(Cls.ndJs);
-		slice(nodeArr).forEach(function(node) {
-			var imgs = node.getElementsByTagName('img');
-			slice(imgs).forEach(function (img) {
-				if (isDOMElement(img)) {
-					var imgRect = img.getBoundingClientRect();
-					var wpRect = _wrap.getBoundingClientRect()
-					_bgCtx.drawImage(img, imgRect.x - wpRect.x, imgRect.y - wpRect.y, imgRect.width, imgRect.height);
-				}
-			});
-		});
-		
-		var image1 = new Image();
-        var cloneDom = _wrap.cloneNode(true);
-        cloneDom.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-        cloneDom.classList.remove('outline');
-        var styles = document.getElementsByTagName('style');
-        var styleStr = '';
-        slice(styles).forEach(function(style) {
-        	if (isDOMElement(style)) {
-        		styleStr += style.outerHTML.replace(/#/g, '%23').replace(/\n/g, '%0A');
-        	}
-        });
 
-		image1.src = 'data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="' + _wrap.offsetWidth + '" height="' + _wrap.offsetHeight + '"><foreignObject x="0" y="0" width="100%" height="100%">'+ 
-            new XMLSerializer().serializeToString(cloneDom).replace(/#/g, '%23').replace(/\n/g, '%0A') +
-            styleStr +
-         '</foreignObject></svg>';
+	this.getImage = function (fn, deep) {
+		var cW = getElemWidth(_wrap),
+			cH = getElemHeight(_wrap),
+			image = new Image(),
+			tempCvs = document.createElement('canvas'),
+			tempCtx = tempCvs.getContext('2d'),
+			nodeArr = _wrap.getElementsByClassName(Cls.ndJs),
+			image1 = new Image();
+		tempCvs.width = cW;
+		tempCvs.height = cH;
+
+		drawImg2bgCtx(nodeArr);
         
-	    image1.onload = function () {
-	     	tempCtx.drawImage(image1, 0, 0, _wrap.offsetWidth, _wrap.offsetHeight);
-	     	image.src = _bgCvs.toDataURL("image/png");
-	     	if (isFunction(fn)) {
-	     		fn(image);
-	     	}
-	     	if (isTrue(deep)) {
-	     		image.onload = function () {
-					tempCtx.drawImage(image, 0, 0, _wrap.offsetWidth, _wrap.offsetHeight);
-					var eleLink = document.createElement('a');
-			        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
-			        eleLink.style.display = 'none';
-			        eleLink.href = tempCvs.toDataURL("image/png");
-			        eleLink.click();
-				};
-	     	}
-	    };
+        getLinkStyle(function (styles) {
+	        var styleStr = mergeStyle(styles);
+	        var svgSrc = createSvg(_wrap, styleStr, tempCvs);
+	        image1.src = svgSrc;
+		    image1.onload = function () {
+		     	tempCtx.drawImage(image1, 0, 0, cW, cH);
+		     	image.src = _bgCvs.toDataURL("image/png");
+		     	if (isFunction(fn)) {
+		     		fn(image);
+		     	}
+		     	if (isTrue(deep)) {
+		     		image.onload = function () {
+						tempCtx.drawImage(image, 0, 0, cW, cH);
+						var eleLink = document.createElement('a');
+				        eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
+				        eleLink.href = tempCvs.toDataURL("image/png");
+				        eleLink.click();
+					};
+		     	}
+		    };
+		});
 	}
 };
 

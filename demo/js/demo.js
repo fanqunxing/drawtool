@@ -90,8 +90,8 @@ function clearMap() {
 };
 
 function getImage() {
-	var img = drawTool.getImage(function(im) {
-		console.log(im)
+	drawTool.getImage(function(img) {
+		console.log(img)
 	}, true);
 	// body.appendChild(img)
 };
