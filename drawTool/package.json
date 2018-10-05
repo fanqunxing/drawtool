@@ -1,6 +1,6 @@
 {
   "name": "drawtool",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "绘制图的canvas工具",
   "main": "drawTool.js",
   "scripts": {
