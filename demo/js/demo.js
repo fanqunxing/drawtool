@@ -15,10 +15,10 @@ function addNode(x, y) {
 	var text = $('#text').val();
 	var option = {
 		pos:{x:x,y:y},
-		template:`<div class='node js-node'>
-					<div class='in ${type}'>${text}</div>
-					<button class=\"option\">删除</button>
-			  	</div>`,
+		template:"<div class='node js-node'>\
+					<div class='in " + type + "'>" + text + "</div>\
+					<button class=\"option\">删除</button>\
+			  	</div>",
 			  // <div class='in " + type + "'>"+ text +"</div>\
 		// html: "<div class='node js-node'>"+ String.fromCharCode(index) +"</div>",
 		anchors:[[0, 20],[40, 20],[20, 0],[20, 40]]
@@ -84,10 +84,17 @@ function clearMap() {
 };
 
 function getImage() {
-	drawtool.getImage(function(img) {
-		console.log(img)
+	drawtool.getImage(function(res) {
+    console.log(res);
+    var src = res.dataURL;
+    var img = new Image();
+    img.src = src;
+    img.onload = function() {
+      var body = document.getElementById('body');
+      body.appendChild(img)
+    }
+    
 	}, true);
-	// body.appendChild(img)
 };
 
 $("#canvas").delegate('.js-node', 'mousemove', function(e) {

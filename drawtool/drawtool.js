@@ -116,6 +116,48 @@ function aop(option) {
 };
 
 /**
+ * 简单Promise
+ */
+function Promise(fn) {
+  this.status = 'pending';
+  var _success = function () {};
+  var _error = function () {};
+  var _value = null;
+  var _self = this;
+  function resolve(value) {
+    _self.status = 'fulfilled';
+    _value = value;
+    setTimeout(function() {
+      _success(value);
+    }, 0);
+  };
+  function reject(value) {
+    _self.status = 'rejected';
+    _value = value;
+    setTimeout(function() {
+      _error(value);
+    }, 0);
+  };
+  this.then = function (success) {
+    if (_self.status == 'pending') {
+      _success = success;
+    } else {
+      success(_value);
+    };
+    return _self;
+  };
+  this.catch = function (error) {
+    if (_self.status == 'pending') {
+      _error = error;
+    } else {
+      error(_value);
+    };
+    return _self;
+  }; 
+  fn(resolve, reject);
+}
+
+/**
  * 将字符串切割成简单map，以此判断是否存在
  * @param {*} str 字符串，逗号切割
  * @param {*} expectsLowerCase 是否转换为小写
@@ -315,40 +357,48 @@ function httpGet(url, succfn, errorfn) {
   xhr.open('GET', url, true);
   xhr.onreadystatechange = function () {
     if (xhr.readyState == 4 && xhr.status == 200) {
-      succfn(xhr.status, xhr.responseText);
+      succfn(xhr.responseText);
     } else if (xhr.readyState == 4) {
-      errorfn(xhr.status, xhr.responseText);
+      errorfn(xhr.responseText);
     }
   };
   xhr.send();
 };
+
+
+function httpGetPromise(url) {
+  return new Promise(function (resolve, reject) {
+    httpGet(url, resolve, reject);
+  });
+}
 
 /**
  * 获取外联css，返回style标签数组
  * @param {*} fn 成功后的异步
  */
 function getLinkStyle(fn) {
-  var links = document.getElementsByTagName('link');
-  var linkArr = slice(links);
-  var styles = [];
-  while (linkArr.length) {
-    var link = linkArr.pop();
-    // 此处闭包解决无块级作用域问题
-    (function (len) {
-      httpGet(link.href,
-        function (status, data) {
+  return new Promise(function (resolve, reject) {
+    var links = document.getElementsByTagName('link');
+    var linkArr = slice(links);
+    var styles = [];
+    while (linkArr.length) {
+      var link = linkArr.pop();
+      // 此处闭包解决无块级作用域问题
+      (function (len) {
+        httpGetPromise(link.href)
+        .then(function (data) {
           var style = document.createElement('style');
           style.innerHTML = data;
           styles.push(style);
-          !len && fn(styles);
-        },
-        function (status, data) {
+          !len && resolve(styles);
+        })
+        .catch(function (data) {
           warn('get style fail , please check =>' + link.href);
-          !len && fn(styles);
-        }
-      );
-    })(linkArr.length);
-  }
+          !len && resolve(styles);
+        });
+      })(linkArr.length);
+    }
+  });
 };
 
 /**
@@ -604,7 +654,7 @@ function appendCtrls(elem) {
  */
 function getAnchorById(anchorsLists, anchorid) {
   var anchor = null;
-  anchorsLists.forEach(function (oAnchor) {
+  slice(anchorsLists).forEach(function (oAnchor) {
     if (hasClass(oAnchor, Cls.anchorJs)) {
       if (oAnchor.anchorid == anchorid) {
         anchor = oAnchor;
@@ -2079,7 +2129,6 @@ function Drawtool(wrap, setting) {
     }
   };
 
-
   this.getImage = function (fn, deep) {
     var cW = getElemWidth(_wrap),
       cH = getElemHeight(_wrap),
@@ -2090,29 +2139,31 @@ function Drawtool(wrap, setting) {
       image1 = new Image();
     tempCvs.width = cW;
     tempCvs.height = cH;
-
     drawImg2bgCtx(nodeArr);
-
-    getLinkStyle(function (styles) {
+    getLinkStyle().then(function (styles) {
       var styleStr = mergeStyle(styles);
       var svgSrc = createSvg(_wrap, styleStr, tempCvs);
-      image1.src = svgSrc;
       image1.onload = function () {
         tempCtx.drawImage(image1, 0, 0, cW, cH);
-        image.src = _bgCvs.toDataURL("image/png");
-        if (isFunction(fn)) {
-          fn(image);
-        }
-        if (isTrue(deep)) {
-          image.onload = function () {
-            tempCtx.drawImage(image, 0, 0, cW, cH);
-            var eleLink = document.createElement('a');
+        image.onload = function () {
+          tempCtx.drawImage(image, 0, 0, cW, cH);
+          var dataURL = tempCvs.toDataURL('image/png');
+          if (isTrue(deep)) {
+            var eleLink = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+            eleLink.href = dataURL;
             eleLink.download = 'drawtool-' + version + '-' + new Date().getTime() + '.png';
-            eleLink.href = tempCvs.toDataURL("image/png");
-            eleLink.click();
-          };
-        }
+            var event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            eleLink.dispatchEvent(event);
+          }
+          isFunction(fn) && fn({code: 'success', dataURL: dataURL});
+        };
+        image.src = _bgCvs.toDataURL('image/png');
       };
+      image1.onerror = function(e) {
+        isFunction(fn) && fn({code: 'error', error: 'svg is not supported'});
+      }
+      image1.src = svgSrc;
     });
   }
 };
