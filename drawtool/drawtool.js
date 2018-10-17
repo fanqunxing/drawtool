@@ -2128,6 +2128,10 @@ function Drawtool(wrap, setting) {
     }
   };
 
+  this.scale = function () {
+    console.log('缩放');
+  };
+
   this.getImage = function (fn, deep) {
     var cW = getElemWidth(_wrap),
       cH = getElemHeight(_wrap),
