@@ -10,7 +10,6 @@ var op = Object.prototype;
 var ap = Array.prototype;
 var ostring = op.toString;
 var hasOwn = op.hasOwnProperty;
-var defaultfn = new Function();
 
 function sin(n) {
   return Math.sin(n);
@@ -60,6 +59,10 @@ function slice(it) {
   return ap.slice.call(it);
 };
 
+function noop() {
+
+};
+
 function toNumber(val) {
   var n = parseFloat(val);
   return isNaN(n) ? val : n;
@@ -104,9 +107,9 @@ function mixin(target, source, force) {
  */
 function aop(option) {
   option = mixin(option, {
-    before: defaultfn,
-    fun: defaultfn,
-    after: defaultfn
+    before: noop,
+    fun: noop,
+    after: noop
   });
   return function () {
     option.before.apply(option.func, arguments);
@@ -186,11 +189,11 @@ function makeMap(str, expectsLowerCase) {
  */
 function divide(sPos, ePos, num) {
   var divideMap = {};
-  var δx = (ePos.x - sPos.x) / num;
-  var δy = (ePos.y - sPos.y) / num;
+  var diffx = (ePos.x - sPos.x) / num;
+  var diffy = (ePos.y - sPos.y) / num;
   for (var i = 0; i <= num; i++) {
-    var x = sPos.x + i * δx;
-    var y = sPos.y + i * δy;
+    var x = sPos.x + i * diffx;
+    var y = sPos.y + i * diffy;
     divideMap['d' + i] = {
       x: x,
       y: y
@@ -988,16 +991,12 @@ function Drawtool(wrap, setting) {
 
   // 事件切面
   var _listenMap = {
-    clickLine: defaultfn,
-    deleteLineBefore: function deleteLineBefore() {
-      return true;
-    },
-    deleteLineAfter: defaultfn,
-    linkLineStart: defaultfn,
-    linkLineBefore: function linkLineBefore() {
-      return true;
-    },
-    linkLineAfter: defaultfn
+    clickLine: noop,
+    deleteLineBefore: function () { return true; },
+    deleteLineAfter: noop,
+    linkLineStart: noop,
+    linkLineBefore: function () { return true; },
+    linkLineAfter: noop
   };
 
   // 添加基础样式
@@ -1689,7 +1688,7 @@ function Drawtool(wrap, setting) {
   /*
     判断点是否在线内
     p2-------------p3
-    |        |
+    |               |
     p1-------------p4
   */
   function isPointInPath(line, pos) {
@@ -1741,19 +1740,19 @@ function Drawtool(wrap, setting) {
    * @param {*} pos 要判断的点位置
    */
   function isPointInPathBezier(sPos, d1Pos, d2Pos, ePos, pos) {
-    var dδ = 10; //偏移距离
+    var diff = 10; //偏移距离
     var d = _wrapLineW / 2;
     var nodeRad = 0;
-    var θ1 = atan((d1Pos.y - sPos.y) / (d1Pos.x - sPos.x));
-    var θ2 = atan((ePos.y - d2Pos.y) / (ePos.x - d2Pos.x));
-    var p1Xd = sPos.x - d * sin(θ1) + dδ * cos(θ1);
-    var p1Yd = sPos.y + d * cos(θ1) + dδ * sin(θ1);
-    var p2Xd = d1Pos.x - d * sin(θ1);
-    var p2Yd = d1Pos.y + d * cos(θ1);
-    var p3Xd = d2Pos.x - d * sin(θ2);
-    var p3Yd = d2Pos.y + d * cos(θ2);
-    var p4Xd = ePos.x - d * sin(θ2) - dδ * cos(θ2);
-    var p4Yd = ePos.y + d * cos(θ2) - dδ * sin(θ2);
+    var deg1 = atan((d1Pos.y - sPos.y) / (d1Pos.x - sPos.x));
+    var deg2 = atan((ePos.y - d2Pos.y) / (ePos.x - d2Pos.x));
+    var p1Xd = sPos.x - d * sin(deg1) + diff * cos(deg1);
+    var p1Yd = sPos.y + d * cos(deg1) + diff * sin(deg1);
+    var p2Xd = d1Pos.x - d * sin(deg1);
+    var p2Yd = d1Pos.y + d * cos(deg1);
+    var p3Xd = d2Pos.x - d * sin(deg2);
+    var p3Yd = d2Pos.y + d * cos(deg2);
+    var p4Xd = ePos.x - d * sin(deg2) - diff * cos(deg2);
+    var p4Yd = ePos.y + d * cos(deg2) - diff * sin(deg2);
     var ld = sqrt(pow((p3Xd - p4Xd), 2) + pow((p3Yd - p4Yd), 2));
     var kd = (nodeRad + 10) / ld;
     var innerK = nodeRad / ld;
@@ -1765,14 +1764,14 @@ function Drawtool(wrap, setting) {
     _avCtx.beginPath();
     _avCtx.moveTo(p1Xd, p1Yd);
     _avCtx.bezierCurveTo(p2Xd, p2Yd, p3Xd, p3Yd, bezierEndXd, bezierEndYd);
-    var p1Xu = sPos.x + d * sin(θ1) + dδ * cos(θ1);
-    var p1Yu = sPos.y - d * cos(θ1) + dδ * sin(θ1);
-    var p2Xu = d1Pos.x + d * sin(θ1);
-    var p2Yu = d1Pos.y - d * cos(θ1);
-    var p3Xu = d2Pos.x + d * sin(θ2);
-    var p3Yu = d2Pos.y - d * cos(θ2);
-    var p4Xu = ePos.x + d * sin(θ2) - dδ * cos(θ2);
-    var p4Yu = ePos.y - d * cos(θ2) - dδ * sin(θ2);
+    var p1Xu = sPos.x + d * sin(deg1) + diff * cos(deg1);
+    var p1Yu = sPos.y - d * cos(deg1) + diff * sin(deg1);
+    var p2Xu = d1Pos.x + d * sin(deg1);
+    var p2Yu = d1Pos.y - d * cos(deg1);
+    var p3Xu = d2Pos.x + d * sin(deg2);
+    var p3Yu = d2Pos.y - d * cos(deg2);
+    var p4Xu = ePos.x + d * sin(deg2) - diff * cos(deg2);
+    var p4Yu = ePos.y - d * cos(deg2) - diff * sin(deg2);
     var lu = sqrt(pow((p3Xu - p4Xu), 2) + pow((p3Yu - p4Yu), 2));
     var ku = (nodeRad + 10) / lu;
     var innerK = nodeRad / lu;
