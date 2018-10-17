@@ -2128,8 +2128,9 @@ function Drawtool(wrap, setting) {
     }
   };
 
-  this.scale = function () {
+  this.scale = function (num) {
     console.log('缩放');
+    _wrap.style.transform = 'scale(' + num + ')';
   };
 
   this.getImage = function (fn, deep) {

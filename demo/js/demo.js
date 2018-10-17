@@ -27,6 +27,11 @@ function addNode(x, y) {
 	console.log(node.nodeid);
 };
 
+var scaleNum = 1;
+function scale() {
+	scaleNum -= 0.1;
+	drawtool.scale(scaleNum);
+};
 
 drawtool.listen({
 	clickLine: function(line) {
