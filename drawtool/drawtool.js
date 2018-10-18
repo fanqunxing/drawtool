@@ -377,9 +377,8 @@ function httpGetPromise(url) {
 
 /**
  * 获取外联css，返回style标签数组
- * @param {*} fn 成功后的异步
  */
-function getLinkStyle(fn) {
+function getLinkStyle() {
   return new Promise(function (resolve, reject) {
     var links = document.getElementsByTagName('link');
     var linkArr = slice(links);
@@ -977,6 +976,8 @@ function Drawtool(wrap, setting) {
   // 活跃层和背景层切换的锁
   var _synchronized = false;
 
+  var _scale = 1;
+
   // 全局属性设置
   !isObject(setting) && (setting = {});
   var _setting = mixin(setting, {
@@ -1353,7 +1354,7 @@ function Drawtool(wrap, setting) {
     if (isDef(focusLine)) {
       // console.log('点击线条');
       _focusLine = focusLine;
-      var pos = getTargetPos(_wrap, e);
+      var pos = getScaleTargerPos(_wrap, e);
       yellMenu(focusLine, pos);
       _listenMap.clickLine.call(this, _focusLine);
     } else {
@@ -1462,9 +1463,19 @@ function Drawtool(wrap, setting) {
     var x = e.pageX - _bgCvs.getBoundingClientRect().left;
     var y = e.pageY - _bgCvs.getBoundingClientRect().top;
     return {
-      x: x,
-      y: y
+      x: x / _scale,
+      y: y / _scale
     };
+  };
+
+  
+
+  function getScaleTargerPos(target, e) {
+    var pos = getTargetPos(target, e);
+    return {
+      x: pos.x / _scale,
+      y: pos.y / _scale
+    }
   };
 
   /**
@@ -1853,7 +1864,7 @@ function Drawtool(wrap, setting) {
    */
   function linkLineProcess(e) {
     var sPos = getAnchorPos(_avLine.startElem);
-    var ePos = getTargetPos(_bgCvs, e);
+    var ePos = getScaleTargerPos(_bgCvs, e);
     switchLineTo(_avCtx, _avLine, sPos, ePos);
   };
 
@@ -2130,6 +2141,7 @@ function Drawtool(wrap, setting) {
 
   this.scale = function (num) {
     console.log('缩放');
+    _scale = num;
     _wrap.style.transform = 'scale(' + num + ')';
   };
 
