@@ -2140,7 +2140,6 @@ function Drawtool(wrap, setting) {
   };
 
   this.scale = function (num) {
-    console.log('缩放');
     _scale = num;
     _wrap.style.transform = 'scale(' + num + ')';
   };
