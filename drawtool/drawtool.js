@@ -2139,10 +2139,10 @@ function Drawtool(wrap, setting) {
     }
   };
 
-  this.scale = function (num) {
-    _scale = num;
-    _wrap.style.transform = 'scale(' + num + ')';
-  };
+  // this.scale = function (num) {
+  //   _scale = num;
+  //   _wrap.style.transform = 'scale(' + num + ')';
+  // };
 
   this.getImage = function (fn, deep) {
     var cW = getElemWidth(_wrap),
