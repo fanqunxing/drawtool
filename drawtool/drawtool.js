@@ -35,6 +35,11 @@ function pow(n, m) {
   return Math.pow(n, m);
 };
 
+function isNative(ctor) {
+  return typeof ctor === 'function' 
+  && /native code/.test(ctor.toString());
+}
+
 function isDef(v) {
   return v !== undefined && v !== null;
 };
@@ -121,44 +126,50 @@ function aop(option) {
 /**
  * 简单Promise
  */
-function Promise(fn) {
-  this.status = 'pending';
-  var _success = function () {};
-  var _error = function () {};
-  var _value = null;
-  var _self = this;
-  function resolve(value) {
-    _self.status = 'fulfilled';
-    _value = value;
-    setTimeout(function() {
-      _success(value);
-    }, 0);
-  };
-  function reject(value) {
-    _self.status = 'rejected';
-    _value = value;
-    setTimeout(function() {
-      _error(value);
-    }, 0);
-  };
-  this.then = function (success) {
-    if (_self.status == 'pending') {
-      _success = success;
-    } else {
-      success(_value);
+var _Promise;
+if(typeof Promise !== 'undefined' && isNative(Promise)) {
+  _Promise = Promise;
+} else {
+  _Promise = function(fn) {
+    this.status = 'pending';
+    var _success = noop;
+    var _error = noop;
+    var _value = null;
+    var _self = this;
+    function resolve(value) {
+      _self.status = 'fulfilled';
+      _value = value;
+      setTimeout(function() {
+        _success(value);
+      }, 0);
     };
-    return _self;
-  };
-  this.catch = function (error) {
-    if (_self.status == 'pending') {
-      _error = error;
-    } else {
-      error(_value);
+    function reject(value) {
+      _self.status = 'rejected';
+      _value = value;
+      setTimeout(function() {
+        _error(value);
+      }, 0);
     };
-    return _self;
-  }; 
-  fn(resolve, reject);
+    this.then = function (success) {
+      if (_self.status == 'pending') {
+        _success = success;
+      } else {
+        success(_value);
+      };
+      return _self;
+    };
+    this.catch = function (error) {
+      if (_self.status == 'pending') {
+        _error = error;
+      } else {
+        error(_value);
+      };
+      return _self;
+    }; 
+    fn(resolve, reject);
+  }
 }
+
 
 /**
  * 将字符串切割成简单map，以此判断是否存在
@@ -370,7 +381,7 @@ function httpGet(url, succfn, errorfn) {
 
 
 function httpGetPromise(url) {
-  return new Promise(function (resolve, reject) {
+  return new _Promise(function (resolve, reject) {
     httpGet(url, resolve, reject);
   });
 }
@@ -379,7 +390,7 @@ function httpGetPromise(url) {
  * 获取外联css，返回style标签数组
  */
 function getLinkStyle() {
-  return new Promise(function (resolve, reject) {
+  return new _Promise(function (resolve, reject) {
     var links = document.getElementsByTagName('link');
     var linkArr = slice(links);
     var styles = [];
@@ -2120,6 +2131,12 @@ function Drawtool(wrap, setting) {
   };
 
   this.init = function (nodeStack, lineStack) {
+    if (!isDef(nodeStack)) {
+      nodeStack = [];
+    }
+    if (!isDef(lineStack)) {
+      lineStack = [];
+    }
     if (!isArray(nodeStack) || !isArray(lineStack)) {
       error('unknown arguments in init(nodeStack,lineStack)');
     };

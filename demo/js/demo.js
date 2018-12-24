@@ -77,8 +77,8 @@ function save() {
 
 init();
 function init() {
-	var lineArr = JSON.parse(localStorage.getItem('lineArr'));
-	var nodeArr = JSON.parse(localStorage.getItem('nodeArr'));
+	var lineArr = JSON.parse(localStorage.getItem('lineArr')) || [];
+	var nodeArr = JSON.parse(localStorage.getItem('nodeArr')) || [];
 	drawtool.init(nodeArr, lineArr);
 };
 
