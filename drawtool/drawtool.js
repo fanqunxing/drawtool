@@ -33,7 +33,7 @@ function pow(n, m) {
 
 function isNative(ctor) {
   return typeof ctor === 'function' 
-  && /native code/.test(ostring.call(ctor));
+  && /native code/.test(ctor.toString());
 }
 
 function isDef(v) {
@@ -123,8 +123,11 @@ function aop(option) {
  * 简单Promise
  */
 
-if(isNative(Promise)) {
-  function Promise(fn) {
+var _Promise;
+if(typeof Promise !== 'undefined' && isNative(Promise)) {
+  _Promise = Promise;
+} else {
+  _Promise = function(fn) {
     this.status = 'pending';
     var _success = noop;
     var _error = noop;
@@ -375,7 +378,7 @@ function httpGet(url, succfn, errorfn) {
 
 
 function httpGetPromise(url) {
-  return new Promise(function (resolve, reject) {
+  return new _Promise(function (resolve, reject) {
     httpGet(url, resolve, reject);
   });
 }
@@ -384,7 +387,7 @@ function httpGetPromise(url) {
  * 获取外联css，返回style标签数组
  */
 function getLinkStyle() {
-  return new Promise(function (resolve, reject) {
+  return new _Promise(function (resolve, reject) {
     var links = document.getElementsByTagName('link');
     var linkArr = slice(links);
     var styles = [];
@@ -2125,6 +2128,12 @@ function Drawtool(wrap, setting) {
   };
 
   this.init = function (nodeStack, lineStack) {
+    if (!isDef(nodeStack)) {
+      nodeStack = [];
+    }
+    if (!isDef(lineStack)) {
+      lineStack = [];
+    }
     if (!isArray(nodeStack) || !isArray(lineStack)) {
       error('unknown arguments in init(nodeStack,lineStack)');
     };
