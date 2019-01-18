@@ -5,7 +5,7 @@
   (global.Drawtool = factory());
 })(this, function () { 'use strict';
 
-var version = '1.3.0';
+var version = '1.3.1';
 var op = Object.prototype;
 var ap = Array.prototype;
 var ostring = op.toString;
@@ -19,13 +19,9 @@ function cos(n) {
   return Math.cos(n);
 };
 
-function tan(n) {
-  return Math.tant(n);
-};
-
 function atan(n) {
   return Math.atan(n);
-}
+};
 
 function sqrt(n) {
   return Math.sqrt(n);
