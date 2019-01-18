@@ -586,6 +586,10 @@ function encryptCls(cls) {
       cls[prop] += '-' + Math.floor(Math.random() * new Date().getTime());
     }
   });
+  if (isNative(Object.freeze)) {
+    return Object.freeze(cls);
+  }
+  return cls;
 };
 
 /**
@@ -1626,13 +1630,12 @@ function Drawtool(wrap, setting) {
         );
         break;
       case 'straight':
-        straightWrap(_avCtx, line, sPos, ePos);
+        straightWrap(_avCtx, sPos, ePos);
         break;
       case 'broken':
         var brokenMap = getCtrlPos(line, sPos, ePos);
         brokenWrap(
           _avCtx,
-          line,
           sPos,
           brokenMap('d1Pos'),
           brokenMap('d2Pos'),
@@ -1645,7 +1648,7 @@ function Drawtool(wrap, setting) {
   /**
    * 绘制折线的包裹层
    */
-  function brokenWrap(ctx, line, sPos, d1Pos, d2Pos, ePos) {
+  function brokenWrap(ctx, sPos, d1Pos, d2Pos, ePos) {
     ctx.save();
     ctx.beginPath();
     ctx.lineCap = 'round';
@@ -1689,7 +1692,7 @@ function Drawtool(wrap, setting) {
   /**
    * 直线包裹层
    */
-  function straightWrap(ctx, line, sPos, ePos) {
+  function straightWrap(ctx, sPos, ePos) {
     ctx.save();
     ctx.beginPath();
     ctx.lineCap = 'round';
