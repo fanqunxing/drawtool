@@ -1774,9 +1774,6 @@ function Drawtool(wrap, setting) {
     var p4Yd = ePos.y + d * cos(deg2) - diff * sin(deg2);
     var ld = sqrt(pow((p3Xd - p4Xd), 2) + pow((p3Yd - p4Yd), 2));
     var kd = (nodeRad + 10) / ld;
-    var innerK = nodeRad / ld;
-    var arrowEndX = p4Xd + innerK * (p3Xd - p4Xd);
-    var arrowEndY = p4Yd + innerK * (p3Yd - p4Yd);
     var bezierEndXd = p4Xd + kd * (p3Xd - p4Xd);
     var bezierEndYd = p4Yd + kd * (p3Yd - p4Yd);
     _avCtx.save();
@@ -1793,9 +1790,6 @@ function Drawtool(wrap, setting) {
     var p4Yu = ePos.y - d * cos(deg2) - diff * sin(deg2);
     var lu = sqrt(pow((p3Xu - p4Xu), 2) + pow((p3Yu - p4Yu), 2));
     var ku = (nodeRad + 10) / lu;
-    var innerK = nodeRad / lu;
-    var arrowEndX = p4Xu + innerK * (p3Xu - p4Xu);
-    var arrowEndY = p4Yu + innerK * (p3Yu - p4Yu);
     var bezierEndXu = p4Xu + ku * (p3Xu - p4Xu);
     var bezierEndYu = p4Yu + ku * (p3Yu - p4Yu);
     _avCtx.lineTo(bezierEndXd, bezierEndYd);
